@@ -1,1 +1,199 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Boport | Kjøp, selg og lei bolig i Norge</title>
+  <meta name="description" content="Boport samler kjøp, salg og utleie av bolig i Norge på ett sted.">
+  <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="logo" href="#" aria-label="Boport startside">
+      <span class="logo-mark">B</span>
+      <span>Boport</span>
+    </a>
 
+    <nav class="main-nav" aria-label="Hovedmeny">
+      <a href="#boliger">Boliger</a>
+      <a href="#selg">Selg bolig</a>
+      <a href="#leie">Leie</a>
+      <a href="#kontakt">Kontakt</a>
+    </nav>
+
+    <a class="header-action" href="#selg">Legg ut bolig</a>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <img class="hero-image" src="images/hero-home.png" alt="Moderne bolig med lys fasade og grønn hage">
+      <div class="hero-overlay"></div>
+
+      <div class="hero-content">
+        <p class="eyebrow">Boligportal for Norge</p>
+        <h1 id="hero-title">Finn hjemmet som passer livet ditt.</h1>
+        <p class="hero-text">Søk etter boliger til salgs og leie, eller kom i gang med et trygt boligsalg på Boport.</p>
+
+        <form class="search-panel" aria-label="Søk etter bolig">
+          <div class="search-tabs" role="group" aria-label="Velg boligtype">
+            <button class="tab-button active" type="button" data-type="Kjøpe">Kjøpe</button>
+            <button class="tab-button" type="button" data-type="Leie">Leie</button>
+            <button class="tab-button" type="button" data-type="Selge">Selge</button>
+          </div>
+
+          <div class="search-grid">
+            <label>
+              Område
+              <input type="search" placeholder="By, sted eller postnummer">
+            </label>
+            <label>
+              Boligtype
+              <select>
+                <option>Alle boliger</option>
+                <option>Leilighet</option>
+                <option>Enebolig</option>
+                <option>Rekkehus</option>
+                <option>Hytte</option>
+              </select>
+            </label>
+            <label>
+              Pris
+              <select>
+                <option>Alle priser</option>
+                <option>Under 2 mill.</option>
+                <option>2-4 mill.</option>
+                <option>4-7 mill.</option>
+                <option>Over 7 mill.</option>
+              </select>
+            </label>
+            <button class="search-button" type="submit">Søk bolig</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section class="quick-actions" id="leie" aria-label="Viktige valg">
+      <a href="#boliger">
+        <strong>Kjøp bolig</strong>
+        <span>Se nye boliger, pris og nøkkelinformasjon.</span>
+      </a>
+      <a href="#leie">
+        <strong>Lei bolig</strong>
+        <span>Finn leilighet, hus eller hybel i ditt område.</span>
+      </a>
+      <a href="#selg">
+        <strong>Selg bolig</strong>
+        <span>Presenter boligen profesjonelt og kom i gang.</span>
+      </a>
+    </section>
+
+    <section class="section" id="boliger">
+      <div class="section-heading">
+        <p class="eyebrow">Aktuelle boliger</p>
+        <h2>Utvalgte annonser</h2>
+      </div>
+
+      <div class="property-grid">
+        <article class="property-card">
+          <div class="property-photo photo-1">
+            <button class="favorite-button" type="button" aria-label="Lagre bolig">♡</button>
+          </div>
+          <div class="property-info">
+            <p class="property-price">4 890 000 kr</p>
+            <h3>Lys 3-roms med balkong</h3>
+            <p>Majorstuen, Oslo</p>
+            <dl>
+              <div><dt>Soverom</dt><dd>2</dd></div>
+              <div><dt>Areal</dt><dd>74 m²</dd></div>
+              <div><dt>Eieform</dt><dd>Selveier</dd></div>
+            </dl>
+          </div>
+        </article>
+
+        <article class="property-card">
+          <div class="property-photo photo-2">
+            <button class="favorite-button" type="button" aria-label="Lagre bolig">♡</button>
+          </div>
+          <div class="property-info">
+            <p class="property-price">2 950 000 kr</p>
+            <h3>Praktisk rekkehus nær skole</h3>
+            <p>Ranheim, Trondheim</p>
+            <dl>
+              <div><dt>Soverom</dt><dd>3</dd></div>
+              <div><dt>Areal</dt><dd>112 m²</dd></div>
+              <div><dt>Eieform</dt><dd>Andel</dd></div>
+            </dl>
+          </div>
+        </article>
+
+        <article class="property-card">
+          <div class="property-photo photo-3">
+            <button class="favorite-button" type="button" aria-label="Lagre bolig">♡</button>
+          </div>
+          <div class="property-info">
+            <p class="property-price">18 500 kr/mnd</p>
+            <h3>Moderne leilighet ved sjøen</h3>
+            <p>Nordnes, Bergen</p>
+            <dl>
+              <div><dt>Soverom</dt><dd>1</dd></div>
+              <div><dt>Areal</dt><dd>58 m²</dd></div>
+              <div><dt>Type</dt><dd>Leie</dd></div>
+            </dl>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="seller-band" id="selg">
+      <div>
+        <p class="eyebrow">Skal du selge?</p>
+        <h2>Legg grunnlaget for et godt boligsalg.</h2>
+        <p>Vis frem boligen med gode bilder, tydelig informasjon og en annonse som gjør det lett for kjøpere å ta neste steg.</p>
+      </div>
+      <a class="primary-link" href="#kontakt">Start salget</a>
+    </section>
+
+    <section class="section process-section">
+      <div class="section-heading">
+        <p class="eyebrow">Slik fungerer det</p>
+        <h2>En enkel vei fra annonse til visning</h2>
+      </div>
+
+      <div class="steps">
+        <article>
+          <span>1</span>
+          <h3>Opprett annonse</h3>
+          <p>Legg inn adresse, prisantydning, bilder og viktig informasjon om boligen.</p>
+        </article>
+        <article>
+          <span>2</span>
+          <h3>Få henvendelser</h3>
+          <p>Interesserte kjøpere eller leietakere kan kontakte deg direkte fra annonsen.</p>
+        </article>
+        <article>
+          <span>3</span>
+          <h3>Avtal visning</h3>
+          <p>Planlegg visning, svar på spørsmål og hold oversikt over interessenter.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="contact-section" id="kontakt">
+      <div>
+        <p class="eyebrow">Boport</p>
+        <h2>Klar for å bygge videre?</h2>
+        <p>Dette er en god startside som kan utvides med ekte boligannonser, innlogging, kontaktskjema og kart.</p>
+      </div>
+      <a class="secondary-link" href="mailto:kontakt@boport.no">kontakt@boport.no</a>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>© 2026 Boport.no</p>
+    <p>Kjøp, salg og utleie av bolig i Norge.</p>
+  </footer>
+
+  <script src="js/script.js"></script>
+</body>
+</html>
