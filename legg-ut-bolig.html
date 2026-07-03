@@ -1,1 +1,147 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Legg ut bolig | Boport</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="logo" href="index.html">
+      <span class="logo-mark">B</span>
+      <span>Boport</span>
+    </a>
+    <nav class="main-nav">
+      <a href="index.html">Forside</a>
+      <a href="legg-ut-bolig.html">Legg ut bolig</a>
+    </nav>
+  </header>
 
+  <main class="section">
+    <div class="section-heading">
+      <p class="eyebrow">Ny annonse</p>
+      <h1>Legg ut bolig</h1>
+      <p>Send inn boligannonse. Annonsen blir liggende til godkjenning før den vises offentlig.</p>
+    </div>
+
+    <form id="property-form" class="search-panel">
+      <div class="search-grid">
+        <label>
+          Tittel
+          <input name="title" required placeholder="Lys 3-roms med balkong">
+        </label>
+
+        <label>
+          Type annonse
+          <select name="listing_type" required>
+            <option value="sale">Til salgs</option>
+            <option value="rent">Til leie</option>
+          </select>
+        </label>
+
+        <label>
+          Boligtype
+          <select name="property_type" required>
+            <option>Leilighet</option>
+            <option>Enebolig</option>
+            <option>Rekkehus</option>
+            <option>Hytte</option>
+            <option>Tomt</option>
+          </select>
+        </label>
+
+        <label>
+          By/sted
+          <input name="city" required placeholder="Oslo">
+        </label>
+
+        <label>
+          Adresse
+          <input name="address" placeholder="Gateadresse">
+        </label>
+
+        <label>
+          Postnummer
+          <input name="postal_code" placeholder="0000">
+        </label>
+
+        <label>
+          Pris
+          <input name="price" type="number" placeholder="4890000">
+        </label>
+
+        <label>
+          Månedsleie
+          <input name="monthly_rent" type="number" placeholder="18500">
+        </label>
+
+        <label>
+          Areal m²
+          <input name="size_m2" type="number" placeholder="74">
+        </label>
+
+        <label>
+          Soverom
+          <input name="bedrooms" type="number" placeholder="2">
+        </label>
+
+        <label>
+          Kontaktperson
+          <input name="contact_name" required placeholder="Navn">
+        </label>
+
+        <label>
+          E-post
+          <input name="contact_email" type="email" required placeholder="navn@epost.no">
+        </label>
+
+        <label>
+          Telefon
+          <input name="contact_phone" placeholder="Telefonnummer">
+        </label>
+      </div>
+
+      <label style="display:grid; gap:8px; margin-top:16px;">
+        Beskrivelse
+        <textarea name="description" rows="6" required placeholder="Skriv kort om boligen..." style="padding:14px; border:1px solid #dfe7e5; border-radius:8px;"></textarea>
+      </label>
+
+      <button class="search-button" type="submit" style="margin-top:16px;">Send inn annonse</button>
+      <p id="form-message"></p>
+    </form>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script>
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const form = document.getElementById("property-form");
+    const message = document.getElementById("form-message");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const formData = new FormData(form);
+      const property = Object.fromEntries(formData.entries());
+
+      ["price", "monthly_rent", "size_m2", "bedrooms"].forEach((field) => {
+        property[field] = property[field] ? Number(property[field]) : null;
+      });
+
+      property.status = "pending";
+
+      const { error } = await client.from("properties").insert(property);
+
+      if (error) {
+        message.textContent = "Noe gikk galt. Prøv igjen.";
+        console.error(error);
+        return;
+      }
+
+      form.reset();
+      message.textContent = "Annonsen er sendt inn og venter på godkjenning.";
+    });
+  </script>
+</body>
+</html>
