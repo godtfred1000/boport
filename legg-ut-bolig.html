@@ -124,7 +124,46 @@
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
+property.id = crypto.randomUUID();
+property.status = "pending";
 
+const { error } = await client.from("properties").insert(property);
+
+if (error) {
+  message.textContent = "Noe gikk galt. Prøv igjen.";
+  console.error(error);
+  return;
+}
+
+const imageInput = document.getElementById("property-images");
+const files = Array.from(imageInput.files);
+
+for (const file of files) {
+  const fileExt = file.name.split(".").pop();
+  const fileName = `${property.id}/${crypto.randomUUID()}.${fileExt}`;
+
+  const { error: uploadError } = await client.storage
+    .from("property-images")
+    .upload(fileName, file);
+
+  if (uploadError) {
+    message.textContent = "Annonsen ble lagret, men bildet kunne ikke lastes opp.";
+    console.error(uploadError);
+    return;
+  }
+
+  const { data } = client.storage
+    .from("property-images")
+    .getPublicUrl(fileName);
+
+  await client.from("property_images").insert({
+    property_id: property.id,
+    image_url: data.publicUrl
+  });
+}
+
+form.reset();
+message.textContent = "Annonsen er sendt inn og venter på godkjenning.";
       const formData = new FormData(form);
       const property = Object.fromEntries(formData.entries());
 
@@ -134,16 +173,7 @@
 
       property.status = "pending";
 
-      const { error } = await client.from("properties").insert(property);
-
-      if (error) {
-        message.textContent = "Noe gikk galt. Prøv igjen.";
-        console.error(error);
-        return;
-      }
-
-      form.reset();
-      message.textContent = "Annonsen er sendt inn og venter på godkjenning.";
+     
     });
   </script>
 </body>
