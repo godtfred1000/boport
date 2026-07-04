@@ -4,30 +4,157 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Legg ut bolig | Boport</title>
+  <meta name="description" content="Send inn boligannonse til Boport.">
+  <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    .listing-page {
+      width: min(1180px, 88vw);
+      margin: 52px auto 92px;
+    }
+
+    .listing-form {
+      display: grid;
+      gap: 22px;
+      padding: 28px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .listing-form label,
+    .image-field {
+      display: grid;
+      gap: 8px;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .listing-form input,
+    .listing-form select,
+    .listing-form textarea {
+      width: 100%;
+      min-height: 50px;
+      padding: 0 14px;
+      color: var(--ink);
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font: inherit;
+      font-weight: 650;
+    }
+
+    .listing-form textarea {
+      min-height: 150px;
+      padding: 14px;
+      resize: vertical;
+    }
+
+    .wide {
+      grid-column: span 2;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    .image-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .file-note {
+      color: var(--muted);
+      font-size: 0.92rem;
+      font-weight: 600;
+    }
+
+    .clear-button {
+      min-height: 40px;
+      padding: 0 14px;
+      color: var(--brand-dark);
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .clear-button:hover {
+      border-color: var(--brand);
+    }
+
+    .form-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 18px;
+    }
+
+    #form-message {
+      min-height: 24px;
+      margin: 0;
+      color: var(--brand-dark);
+      font-weight: 800;
+    }
+
+    #form-message.error {
+      color: #b3261e;
+    }
+
+    @media (max-width: 900px) {
+      .listing-page {
+        width: min(92vw, 680px);
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .wide {
+        grid-column: auto;
+      }
+    }
+  </style>
 </head>
 <body>
   <header class="site-header">
-    <a class="logo" href="index.html">
+    <a class="logo" href="index.html" aria-label="Boport startside">
       <span class="logo-mark">B</span>
       <span>Boport</span>
     </a>
-    <nav class="main-nav">
+
+    <nav class="main-nav" aria-label="Hovedmeny">
       <a href="index.html">Forside</a>
       <a href="legg-ut-bolig.html">Legg ut bolig</a>
     </nav>
   </header>
 
-  <main class="section">
+  <main class="listing-page">
     <div class="section-heading">
       <p class="eyebrow">Ny annonse</p>
-      <h1>Legg ut bolig</h1>
+      <h2>Legg ut bolig</h2>
       <p>Send inn boligannonse. Annonsen blir liggende til godkjenning før den vises offentlig.</p>
     </div>
 
-    <form id="property-form" class="search-panel">
-      <div class="search-grid">
-        <label>
+    <form id="property-form" class="listing-form">
+      <div class="form-grid">
+        <label class="wide">
           Tittel
           <input name="title" required placeholder="Lys 3-roms med balkong">
         </label>
@@ -43,12 +170,17 @@
         <label>
           Boligtype
           <select name="property_type" required>
-            <option>Leilighet</option>
-            <option>Enebolig</option>
-            <option>Rekkehus</option>
-            <option>Hytte</option>
-            <option>Tomt</option>
+            <option value="Leilighet">Leilighet</option>
+            <option value="Enebolig">Enebolig</option>
+            <option value="Rekkehus">Rekkehus</option>
+            <option value="Tomannsbolig">Tomannsbolig</option>
+            <option value="Hytte">Hytte</option>
           </select>
+        </label>
+
+        <label class="wide">
+          Adresse
+          <input name="address" required placeholder="Gateadresse">
         </label>
 
         <label>
@@ -57,33 +189,28 @@
         </label>
 
         <label>
-          Adresse
-          <input name="address" placeholder="Gateadresse">
-        </label>
-
-        <label>
           Postnummer
-          <input name="postal_code" placeholder="0000">
+          <input name="postal_code" required placeholder="0000">
         </label>
 
         <label>
           Pris
-          <input name="price" type="number" placeholder="4890000">
+          <input name="price" type="number" min="0" placeholder="4890000">
         </label>
 
         <label>
           Månedsleie
-          <input name="monthly_rent" type="number" placeholder="18500">
+          <input name="monthly_rent" type="number" min="0" placeholder="18500">
         </label>
 
         <label>
           Areal m²
-          <input name="size_m2" type="number" placeholder="74">
+          <input name="size_m2" type="number" min="0" required placeholder="74">
         </label>
 
         <label>
           Soverom
-          <input name="bedrooms" type="number" placeholder="2">
+          <input name="bedrooms" type="number" min="0" required placeholder="2">
         </label>
 
         <label>
@@ -102,78 +229,115 @@
         </label>
       </div>
 
-      <label style="display:grid; gap:8px; margin-top:16px;">
+      <label>
         Beskrivelse
-        <textarea name="description" rows="6" required placeholder="Skriv kort om boligen..." style="padding:14px; border:1px solid #dfe7e5; border-radius:8px;"></textarea>
+        <textarea name="description" rows="6" required placeholder="Skriv kort om boligen..."></textarea>
       </label>
-<label>
-  Bilder av boligen
-  <input type="file" id="property-images" accept="image/jpeg,image/png,image/webp" multiple>
-</label>
-      <button class="search-button" type="submit" style="margin-top:16px;">Send inn annonse</button>
-      <p id="form-message"></p>
+
+      <div class="image-field">
+        Bilder av boligen
+        <div class="image-row">
+          <input type="file" id="property-images" accept="image/jpeg,image/png,image/webp" multiple>
+          <button class="clear-button" id="clear-images" type="button">Fjern valgte bilder</button>
+        </div>
+        <span class="file-note">Bilder er valgfritt. Du kan holde inne Cmd på Mac for å velge flere bilder.</span>
+      </div>
+
+      <div class="form-actions">
+        <button class="search-button" id="submit-button" type="submit">Send inn annonse</button>
+        <p id="form-message" aria-live="polite"></p>
+      </div>
     </form>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase-config.js"></script>
-<script>
-  const client = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
-  const form = document.getElementById("property-form");
-  const message = document.getElementById("form-message");
+  <script>
+    const client = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
+    const form = document.getElementById("property-form");
+    const message = document.getElementById("form-message");
+    const submitButton = document.getElementById("submit-button");
+    const imageInput = document.getElementById("property-images");
+    const clearImagesButton = document.getElementById("clear-images");
 
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    const formData = new FormData(form);
-    const property = Object.fromEntries(formData.entries());
-
-    property.id = crypto.randomUUID();
-
-    ["price", "monthly_rent", "size_m2", "bedrooms"].forEach((field) => {
-      property[field] = property[field] ? Number(property[field]) : null;
-    });
-
-    property.status = "pending";
-
-    const { error } = await client.from("properties").insert(property);
-
-    if (error) {
-      message.textContent = "Noe gikk galt. Prøv igjen.";
-      console.error(error);
-      return;
+    function showMessage(text, isError = false) {
+      message.textContent = text;
+      message.classList.toggle("error", isError);
     }
 
-    const imageInput = document.getElementById("property-images");
-    const files = Array.from(imageInput.files);
+    clearImagesButton.addEventListener("click", () => {
+      imageInput.value = "";
+      showMessage("Bildene er fjernet. Du kan sende inn uten bilde.");
+    });
 
-    for (const file of files) {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${property.id}/${crypto.randomUUID()}.${fileExt}`;
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
 
-      const { error: uploadError } = await client.storage
-        .from("property-images")
-        .upload(fileName, file);
+      submitButton.disabled = true;
+      submitButton.textContent = "Sender...";
+      showMessage("Sender inn annonse...");
 
-      if (uploadError) {
-        message.textContent = "Annonsen ble lagret, men bildet kunne ikke lastes opp.";
-        console.error(uploadError);
+      const formData = new FormData(form);
+      const property = Object.fromEntries(formData.entries());
+      property.id = crypto.randomUUID();
+      property.status = "pending";
+      property.user_id = null;
+
+      ["price", "monthly_rent", "size_m2", "bedrooms"].forEach((field) => {
+        property[field] = property[field] ? Number(property[field]) : null;
+      });
+
+      const { error } = await client.from("properties").insert(property);
+
+      if (error) {
+        console.error(error);
+        showMessage("Noe gikk galt da annonsen skulle lagres. Sjekk at alle felt er fylt ut riktig.", true);
+        submitButton.disabled = false;
+        submitButton.textContent = "Send inn annonse";
         return;
       }
 
-      const { data } = client.storage
-        .from("property-images")
-        .getPublicUrl(fileName);
+      const files = Array.from(imageInput.files);
 
-      await client.from("property_images").insert({
-        property_id: property.id,
-        image_url: data.publicUrl
-      });
-    }
+      for (const file of files) {
+        const fileExt = file.name.split(".").pop();
+        const fileName = `${property.id}/${crypto.randomUUID()}.${fileExt}`;
 
-    form.reset();
-    message.textContent = "Annonsen er sendt inn og venter på godkjenning.";
-  });
-</script>
+        const { error: uploadError } = await client.storage
+          .from("property-images")
+          .upload(fileName, file);
+
+        if (uploadError) {
+          console.error(uploadError);
+          showMessage("Annonsen ble lagret, men bildet kunne ikke lastes opp. Prøv med JPG, PNG eller WEBP.", true);
+          submitButton.disabled = false;
+          submitButton.textContent = "Send inn annonse";
+          return;
+        }
+
+        const { data } = client.storage
+          .from("property-images")
+          .getPublicUrl(fileName);
+
+        const { error: imageRowError } = await client.from("property_images").insert({
+          property_id: property.id,
+          image_url: data.publicUrl
+        });
+
+        if (imageRowError) {
+          console.error(imageRowError);
+          showMessage("Annonsen og bildet ble lagret, men bildet ble ikke koblet til annonsen.", true);
+          submitButton.disabled = false;
+          submitButton.textContent = "Send inn annonse";
+          return;
+        }
+      }
+
+      form.reset();
+      showMessage("Annonsen er sendt inn og venter på godkjenning.");
+      submitButton.disabled = false;
+      submitButton.textContent = "Send inn annonse";
+    });
+  </script>
 </body>
 </html>
