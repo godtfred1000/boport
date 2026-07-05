@@ -36,26 +36,78 @@
       box-shadow: var(--shadow);
     }
 
-    .detail-photo {
-      min-height: 440px;
-      background: url("images/hero-home.png") center/cover;
-    }
-
-    .detail-gallery {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 10px;
-      padding: 10px;
+    .detail-media {
       background: #fff;
-      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
     }
 
-    .detail-gallery img {
+    .detail-slider {
+      display: flex;
+      overflow-x: auto;
+      scroll-behavior: smooth;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .detail-slider::-webkit-scrollbar {
+      display: none;
+    }
+
+    .detail-slide {
+      flex: 0 0 100%;
+      display: grid;
+      place-items: center;
+      margin: 0;
+      aspect-ratio: 16 / 10;
+      background: #eef4f0;
+      scroll-snap-align: start;
+    }
+
+    .detail-slide img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .swipe-hint {
+      display: none;
+      margin: 0;
+      padding: 10px 16px 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 800;
+    }
+
+    .detail-thumbs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 10px;
+      border-top: 1px solid var(--line);
+      scrollbar-width: thin;
+    }
+
+    .detail-thumb {
+      flex: 0 0 92px;
+      padding: 0;
+      overflow: hidden;
+      background: #fff;
+      border: 2px solid transparent;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .detail-thumb.active {
+      border-color: var(--brand);
+    }
+
+    .detail-thumb img {
+      display: block;
       width: 100%;
       aspect-ratio: 4 / 3;
       object-fit: cover;
-      border-radius: 8px;
-      border: 1px solid var(--line);
     }
 
     .detail-content {
@@ -138,25 +190,88 @@
 
     @media (max-width: 900px) {
       .detail-page {
-        width: min(92vw, 680px);
+        width: min(94vw, 680px);
+        margin: 28px auto 64px;
       }
 
       .detail-layout {
         grid-template-columns: 1fr;
+        gap: 18px;
       }
 
       .contact-card {
         position: static;
       }
+
+      .detail-slide {
+        aspect-ratio: 4 / 3;
+      }
     }
 
     @media (max-width: 560px) {
-      .detail-photo {
-        min-height: 280px;
+      .detail-page {
+        width: 100%;
+        margin: 0 auto 54px;
+      }
+
+      .back-link {
+        margin: 14px 16px;
+      }
+
+      .detail-main,
+      .detail-message {
+        border-right: 0;
+        border-left: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+
+      .detail-content {
+        padding: 20px 16px;
+      }
+
+      .detail-price {
+        font-size: 1.8rem;
+      }
+
+      .detail-title {
+        font-size: 1.55rem;
+      }
+
+      .detail-location {
+        margin-bottom: 18px;
+        font-size: 1rem;
+      }
+
+      .swipe-hint {
+        display: block;
+      }
+
+      .detail-thumbs {
+        padding: 10px 16px 14px;
+      }
+
+      .detail-thumb {
+        flex-basis: 72px;
       }
 
       .detail-facts {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        padding: 14px 0;
+      }
+
+      .detail-facts dt {
+        font-size: 0.72rem;
+      }
+
+      .detail-facts dd {
+        font-size: 1rem;
+      }
+
+      .contact-card {
+        margin: 0 16px;
+        box-shadow: none;
       }
     }
   </style>
@@ -238,18 +353,40 @@
         .select("image_url")
         .eq("property_id", propertyId);
 
-      const imageUrl = images?.[0]?.image_url || "images/hero-home.png";
-      const gallery = (images || [])
-        .slice(1)
-        .map((image) => `<img src="${escapeHtml(image.image_url)}" alt="Bilde av boligen">`)
+      const imageUrls = (images || [])
+        .map((image) => image.image_url)
+        .filter(Boolean);
+
+      if (!imageUrls.length) {
+        imageUrls.push("images/hero-home.png");
+      }
+
+      const slides = imageUrls
+        .map((imageUrl, index) => `
+          <figure class="detail-slide" aria-label="Bilde ${index + 1} av ${imageUrls.length}">
+            <img src="${escapeHtml(imageUrl)}" alt="Bilde ${index + 1} av boligen"${index === 0 ? "" : ' loading="lazy"'}>
+          </figure>
+        `)
+        .join("");
+
+      const thumbs = imageUrls
+        .map((imageUrl, index) => `
+          <button class="detail-thumb${index === 0 ? " active" : ""}" type="button" data-slide="${index}" aria-label="Vis bilde ${index + 1}">
+            <img src="${escapeHtml(imageUrl)}" alt="">
+          </button>
+        `)
         .join("");
       const location = [property.address, property.city, property.postal_code].filter(Boolean).join(", ");
 
       detail.className = "detail-layout";
       detail.innerHTML = `
         <article class="detail-main">
-          <div class="detail-photo" style="background-image: url('${escapeHtml(imageUrl)}')"></div>
-          ${gallery ? `<div class="detail-gallery">${gallery}</div>` : ""}
+          <div class="detail-media">
+            <div class="detail-slider" id="detail-slider" aria-label="Bilder av boligen">
+              ${slides}
+            </div>
+            ${imageUrls.length > 1 ? `<p class="swipe-hint">Sveip sideveis for å se flere bilder</p><div class="detail-thumbs">${thumbs}</div>` : ""}
+          </div>
           <div class="detail-content">
             <p class="detail-price">${escapeHtml(formatPrice(property))}</p>
             <h1 class="detail-title">${escapeHtml(property.title)}</h1>
@@ -274,10 +411,46 @@
           ${property.contact_email ? `<a class="primary-link" href="mailto:${escapeHtml(property.contact_email)}">Send e-post</a>` : ""}
         </aside>
       `;
+
+      setupImageSlider();
+    }
+
+    function setupImageSlider() {
+      const slider = document.getElementById("detail-slider");
+      const slides = Array.from(document.querySelectorAll(".detail-slide"));
+      const thumbs = Array.from(document.querySelectorAll(".detail-thumb"));
+
+      if (!slider || !slides.length || !thumbs.length) {
+        return;
+      }
+
+      function setActiveThumb() {
+        const currentIndex = Math.round(slider.scrollLeft / slider.clientWidth);
+        thumbs.forEach((thumb, index) => {
+          thumb.classList.toggle("active", index === currentIndex);
+        });
+      }
+
+      let frame = null;
+
+      slider.addEventListener("scroll", () => {
+        window.cancelAnimationFrame(frame);
+        frame = window.requestAnimationFrame(setActiveThumb);
+      }, { passive: true });
+
+      thumbs.forEach((thumb) => {
+        thumb.addEventListener("click", () => {
+          const index = Number(thumb.dataset.slide);
+          slides[index]?.scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+            inline: "start"
+          });
+        });
+      });
     }
 
     loadProperty();
   </script>
 </body>
 </html>
-
