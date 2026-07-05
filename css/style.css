@@ -679,3 +679,24 @@ select {
     padding: 24px;
   }
 }
+.showcase-section {
+  scroll-margin-top: 96px;
+}
+
+.description-text + .description-text {
+  margin-top: 22px;
+}
+
+.property-unit-section .content-panel {
+  border-left: 6px solid #c98b37;
+}
+
+.property-unit-section h2 {
+  max-width: 900px;
+}
+
+@media (max-width: 760px) {
+  .property-unit-section .content-panel {
+    border-left-width: 4px;
+  }
+}
