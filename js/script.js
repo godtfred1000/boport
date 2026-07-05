@@ -158,3 +158,198 @@ async function loadApprovedProperties() {
 }
 
 loadApprovedProperties();
+function boportMakeSectionSlug(value) {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/æ/g, "ae")
+    .replace(/ø/g, "o")
+    .replace(/å/g, "a")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "del";
+}
+
+function boportEscapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function boportTextToParagraphs(value) {
+  const text = String(value || "").trim();
+
+  if (!text) {
+    return `<p class="description-text">Ingen tekst er lagt inn ennå.</p>`;
+  }
+
+  return text
+    .split(/\n\s*\n/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean)
+    .map((paragraph) => `<p class="description-text">${boportEscapeHtml(paragraph).replace(/\n/g, "<br>")}</p>`)
+    .join("");
+}
+
+function boportParseDescriptionSections(description) {
+  const text = String(description || "").trim();
+
+  if (!text) {
+    return { intro: "", sections: [] };
+  }
+
+  const lines = text.split(/\r?\n/);
+  const introLines = [];
+  const sections = [];
+  let current = null;
+
+  lines.forEach((line) => {
+    const heading = line.match(/^\s{0,3}#{1,3}\s+(.+?)\s*$/);
+
+    if (heading) {
+      if (current) {
+        sections.push(current);
+      }
+
+      current = { title: heading[1].trim(), lines: [] };
+      return;
+    }
+
+    if (current) {
+      current.lines.push(line);
+    } else {
+      introLines.push(line);
+    }
+  });
+
+  if (current) {
+    sections.push(current);
+  }
+
+  return {
+    intro: introLines.join("\n").trim(),
+    sections: sections
+      .map((section, index) => ({
+        id: `seksjon-${boportMakeSectionSlug(section.title)}-${index + 1}`,
+        title: section.title,
+        text: section.lines.join("\n").trim()
+      }))
+      .filter((section) => section.title)
+  };
+}
+
+function boportRenderSectionedDescription(description, options = {}) {
+  const parsed = boportParseDescriptionSections(description);
+  const intro = parsed.intro || options.emptyIntro || "Velg en del av eiendommen i menyen for å lese mer.";
+
+  return {
+    introHtml: boportTextToParagraphs(intro),
+    navItems: parsed.sections.map((section) => ({
+      href: `#${section.id}`,
+      label: section.title
+    })),
+    sectionsHtml: parsed.sections.map((section) => `
+      <section class="showcase-section property-unit-section" id="${boportEscapeHtml(section.id)}">
+        <p class="section-eyebrow">Del av eiendommen</p>
+        <h2>${boportEscapeHtml(section.title)}</h2>
+        <div class="content-panel">
+          ${boportTextToParagraphs(section.text)}
+        </div>
+      </section>
+    `).join("")
+  };
+}
+
+function boportApplySectionedDescription(description, settings = {}) {
+  const result = boportRenderSectionedDescription(description, {
+    emptyIntro: settings.emptyIntro
+  });
+  const descriptionTarget = document.querySelector(settings.descriptionSelector || "[data-boport-description]");
+  const sectionTarget = document.querySelector(settings.sectionTargetSelector || "[data-boport-sections]");
+  const navTarget = document.querySelector(settings.navSelector || ".listing-nav-links");
+
+  if (descriptionTarget) {
+    descriptionTarget.innerHTML = result.introHtml;
+  }
+
+  if (sectionTarget) {
+    sectionTarget.innerHTML = result.sectionsHtml;
+  }
+
+  if (navTarget && result.navItems.length) {
+    const fixedLinks = [
+      { href: "#beskrivelse", label: "Beskrivelse" },
+      ...result.navItems,
+      { href: "#boliginfo", label: "Boliginfo" },
+      { href: "#bilder", label: "Bilder" },
+      { href: "#kart", label: "Kart" },
+      { href: "#kontakt", label: "Kontakt" },
+      { href: "index.html", label: "Forside" }
+    ];
+
+    navTarget.innerHTML = fixedLinks
+      .map((link) => `<a href="${boportEscapeHtml(link.href)}">${boportEscapeHtml(link.label)}</a>`)
+      .join("");
+  }
+
+  return result;
+}
+function boportEnhanceSectionedDescriptionFromPage() {
+  const descriptionSection = document.getElementById("beskrivelse");
+  const descriptionText = descriptionSection?.querySelector(".description-text");
+
+  if (!descriptionSection || !descriptionText || descriptionSection.dataset.boportSectionsReady === "true") {
+    return false;
+  }
+
+  const description = descriptionText.textContent || "";
+  const rendered = boportRenderSectionedDescription(description, {
+    emptyIntro: "Se delene av boligen under."
+  });
+
+  if (!rendered.sections.length) {
+    return false;
+  }
+
+  descriptionText.innerHTML = rendered.introHtml;
+
+  const sectionWrapper = document.createElement("div");
+  sectionWrapper.innerHTML = rendered.sectionsHtml;
+  descriptionSection.after(...sectionWrapper.children);
+
+  const navTarget = document.querySelector(".listing-nav-links");
+
+  if (navTarget) {
+    rendered.sections.forEach((section) => {
+      const link = document.createElement("a");
+      link.href = `#${section.id}`;
+      link.textContent = section.title;
+      navTarget.insertBefore(link, navTarget.querySelector('a[href="#kart"]') || navTarget.lastElementChild);
+    });
+  }
+
+  descriptionSection.dataset.boportSectionsReady = "true";
+  return true;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (boportEnhanceSectionedDescriptionFromPage()) {
+    return;
+  }
+
+  const observer = new MutationObserver(() => {
+    if (boportEnhanceSectionedDescriptionFromPage()) {
+      observer.disconnect();
+    }
+  });
+
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+
+  setTimeout(() => observer.disconnect(), 10000);
+});
