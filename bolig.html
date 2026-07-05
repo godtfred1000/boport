@@ -42,6 +42,10 @@
       border-bottom: 1px solid var(--line);
     }
 
+    .detail-slider-wrap {
+      position: relative;
+    }
+
     .detail-slider {
       display: flex;
       overflow-x: auto;
@@ -75,30 +79,27 @@
     .detail-arrow {
       position: absolute;
       top: 50%;
-      z-index: 2;
-      display: grid;
-      place-items: center;
-      width: 48px;
-      height: 48px;
+      z-index: 5;
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+      width: 56px;
+      height: 56px;
       transform: translateY(-50%);
-      color: var(--ink);
-      background: rgba(255, 255, 255, 0.94);
-      border: 1px solid var(--line);
+      color: #fff;
+      background: rgba(31, 122, 99, 0.94);
+      border: 2px solid rgba(255, 255, 255, 0.95);
       border-radius: 50%;
-      box-shadow: 0 10px 24px rgba(23, 33, 38, 0.16);
-      font-size: 2rem;
+      box-shadow: 0 16px 36px rgba(23, 33, 38, 0.28);
+      font-size: 2.4rem;
+      font-weight: 900;
       line-height: 1;
       cursor: pointer;
     }
 
     .detail-arrow:hover {
-      color: var(--brand-dark);
-      background: #fff;
-    }
-
-    .detail-arrow:disabled {
-      opacity: 0.35;
-      cursor: default;
+      color: #fff;
+      background: var(--brand-dark);
     }
 
     .detail-arrow.prev {
@@ -277,7 +278,7 @@
       }
 
       .detail-arrow {
-        display: none;
+        display: none !important;
       }
 
       .detail-location {
@@ -424,13 +425,15 @@
       detail.innerHTML = `
         <article class="detail-main">
           <div class="detail-media">
-            <div class="detail-slider" id="detail-slider" aria-label="Bilder av boligen">
-              ${slides}
+            <div class="detail-slider-wrap">
+              <div class="detail-slider" id="detail-slider" aria-label="Bilder av boligen">
+                ${slides}
+              </div>
+              ${imageUrls.length > 1 ? `
+                <button class="detail-arrow prev" type="button" data-direction="-1" aria-label="Forrige bilde">&lsaquo;</button>
+                <button class="detail-arrow next" type="button" data-direction="1" aria-label="Neste bilde">&rsaquo;</button>
+              ` : ""}
             </div>
-            ${imageUrls.length > 1 ? `
-              <button class="detail-arrow prev" type="button" data-direction="-1" aria-label="Forrige bilde">&lsaquo;</button>
-              <button class="detail-arrow next" type="button" data-direction="1" aria-label="Neste bilde">&rsaquo;</button>
-            ` : ""}
             ${imageUrls.length > 1 ? `<p class="swipe-hint">Sveip sideveis for å se flere bilder</p><div class="detail-thumbs">${thumbs}</div>` : ""}
           </div>
           <div class="detail-content">
@@ -467,7 +470,7 @@
       const thumbs = Array.from(document.querySelectorAll(".detail-thumb"));
       const arrows = Array.from(document.querySelectorAll(".detail-arrow"));
 
-      if (!slider || !slides.length || !thumbs.length) {
+      if (!slider || !slides.length) {
         return;
       }
 
@@ -480,14 +483,10 @@
         thumbs.forEach((thumb, index) => {
           thumb.classList.toggle("active", index === currentIndex);
         });
-        arrows.forEach((arrow) => {
-          const direction = Number(arrow.dataset.direction);
-          arrow.disabled = direction < 0 ? currentIndex === 0 : currentIndex === slides.length - 1;
-        });
       }
 
       function goToSlide(index) {
-        const nextIndex = Math.max(0, Math.min(slides.length - 1, index));
+        const nextIndex = (index + slides.length) % slides.length;
         slides[nextIndex]?.scrollIntoView({
           behavior: "smooth",
           block: "nearest",
