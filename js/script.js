@@ -16,11 +16,22 @@ function setupFavoriteButtons() {
   const favoriteButtons = document.querySelectorAll(".favorite-button");
 
   favoriteButtons.forEach((button) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
       button.classList.toggle("saved");
       button.textContent = button.classList.contains("saved") ? "♥" : "♡";
     });
   });
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 function formatPrice(property) {
@@ -41,29 +52,66 @@ function getListingLabel(property) {
   return property.listing_type === "rent" ? "Leie" : "Salg";
 }
 
-function createPropertyCard(property, index) {
+function getPropertyImage(property, index) {
+  if (property.image_url) {
+    return `style="background-image: url('${escapeHtml(property.image_url)}')"`;
+  }
+
   const photoClass = `photo-${(index % 3) + 1}`;
+  return `class="property-photo ${photoClass}"`;
+}
+
+function createPropertyCard(property, index) {
   const bedrooms = property.bedrooms ?? "-";
   const size = property.size_m2 ? `${property.size_m2} m²` : "-";
   const location = [property.city, property.postal_code].filter(Boolean).join(", ");
+  const imageMarkup = property.image_url
+    ? `<div class="property-photo" ${getPropertyImage(property, index)}>`
+    : `<div ${getPropertyImage(property, index)}>`;
 
   return `
-    <article class="property-card">
-      <div class="property-photo ${photoClass}">
+    <a class="property-card property-card-link" href="bolig.html?id=${encodeURIComponent(property.id)}">
+      ${imageMarkup}
         <button class="favorite-button" type="button" aria-label="Lagre bolig">♡</button>
       </div>
       <div class="property-info">
-        <p class="property-price">${formatPrice(property)}</p>
-        <h3>${property.title}</h3>
-        <p>${location || property.address || "Norge"}</p>
+        <p class="property-price">${escapeHtml(formatPrice(property))}</p>
+        <h3>${escapeHtml(property.title)}</h3>
+        <p>${escapeHtml(location || property.address || "Norge")}</p>
         <dl>
-          <div><dt>Soverom</dt><dd>${bedrooms}</dd></div>
-          <div><dt>Areal</dt><dd>${size}</dd></div>
-          <div><dt>Type</dt><dd>${getListingLabel(property)}</dd></div>
+          <div><dt>Soverom</dt><dd>${escapeHtml(bedrooms)}</dd></div>
+          <div><dt>Areal</dt><dd>${escapeHtml(size)}</dd></div>
+          <div><dt>Type</dt><dd>${escapeHtml(getListingLabel(property))}</dd></div>
         </dl>
       </div>
-    </article>
+    </a>
   `;
+}
+
+async function getImagesForProperties(client, properties) {
+  const ids = properties.map((property) => property.id);
+
+  if (!ids.length) {
+    return {};
+  }
+
+  const { data, error } = await client
+    .from("property_images")
+    .select("property_id, image_url")
+    .in("property_id", ids);
+
+  if (error) {
+    console.error("Kunne ikke hente bilder:", error);
+    return {};
+  }
+
+  return data.reduce((images, image) => {
+    if (!images[image.property_id]) {
+      images[image.property_id] = image.image_url;
+    }
+
+    return images;
+  }, {});
 }
 
 async function loadApprovedProperties() {
@@ -76,7 +124,7 @@ async function loadApprovedProperties() {
 
   const { data, error } = await client
     .from("properties")
-    .select("title, listing_type, property_type, city, postal_code, address, price, monthly_rent, size_m2, bedrooms, created_at")
+    .select("id, title, listing_type, property_type, city, postal_code, address, price, monthly_rent, size_m2, bedrooms, created_at")
     .eq("status", "approved")
     .order("created_at", { ascending: false });
 
@@ -99,7 +147,13 @@ async function loadApprovedProperties() {
     return;
   }
 
-  propertyGrid.innerHTML = data.map(createPropertyCard).join("");
+  const images = await getImagesForProperties(client, data);
+  const properties = data.map((property) => ({
+    ...property,
+    image_url: images[property.id]
+  }));
+
+  propertyGrid.innerHTML = properties.map(createPropertyCard).join("");
   setupFavoriteButtons();
 }
 
