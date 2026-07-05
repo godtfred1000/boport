@@ -4,49 +4,269 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Boligannonse | Boport</title>
-  <meta name="description" content="Se boligannonse på Boport.">
+  <meta name="description" content="Se komplett boligannonse på Boport.">
   <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="css/style.css">
   <style>
-    .detail-page {
-      width: min(1180px, 88vw);
-      margin: 42px auto 92px;
+    body.showcase-page {
+      background: #f6f1e8;
+      color: #171d20;
     }
 
-    .back-link {
-      display: inline-flex;
-      margin-bottom: 22px;
-      color: var(--brand-dark);
+    .listing-nav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 76px;
+      padding: 0 max(24px, calc((100% - 1360px) / 2));
+      background: #20201f;
+      color: #fff;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .listing-nav-title {
+      color: #fff;
+      font-size: 1.05rem;
+      font-weight: 900;
+      letter-spacing: 0;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .listing-nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .listing-nav-links::-webkit-scrollbar {
+      display: none;
+    }
+
+    .listing-nav-links a {
+      flex: 0 0 auto;
+      color: #fff;
+      font-size: 0.98rem;
+      font-weight: 900;
+      text-decoration: none;
+      letter-spacing: 0;
+    }
+
+    .listing-nav-links a:hover {
+      color: #d0933d;
+    }
+
+    .status-panel {
+      width: min(980px, calc(100% - 48px));
+      margin: 64px auto;
+      padding: 28px;
+      background: #fffaf3;
+      border: 1px solid rgba(32, 32, 31, 0.12);
+      border-radius: 8px;
+      box-shadow: 0 24px 70px rgba(37, 47, 50, 0.12);
       font-weight: 800;
     }
 
-    .detail-layout {
+    .showcase-hero {
+      position: relative;
+      min-height: 690px;
       display: grid;
-      grid-template-columns: minmax(0, 1.6fr) minmax(300px, 0.7fr);
-      gap: 28px;
-      align-items: start;
-    }
-
-    .detail-main,
-    .contact-card {
-      background: var(--paper);
-      border: 1px solid var(--line);
-      border-radius: 8px;
+      align-items: end;
       overflow: hidden;
-      box-shadow: var(--shadow);
+      background: #1d1d1c;
+      color: #fff;
     }
 
-    .detail-media {
+    .showcase-hero-photo {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .showcase-hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.34) 52%, rgba(0, 0, 0, 0.18)),
+        linear-gradient(0deg, rgba(0, 0, 0, 0.58), rgba(0, 0, 0, 0.08) 48%);
+    }
+
+    .showcase-hero-content {
       position: relative;
+      z-index: 1;
+      width: min(1360px, calc(100% - 48px));
+      margin: 0 auto;
+      padding: 110px 0 86px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      max-width: 100%;
+      margin-bottom: 24px;
+      padding: 12px 18px;
+      overflow: hidden;
+      color: #fff;
+      background: #c98b37;
+      border-radius: 6px;
+      font-weight: 900;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .showcase-hero h1 {
+      max-width: 960px;
+      margin: 0;
+      color: #fff;
+      font-size: 5.4rem;
+      line-height: 0.98;
+      letter-spacing: 0;
+    }
+
+    .hero-lead {
+      max-width: 860px;
+      margin: 28px 0 0;
+      color: rgba(255, 255, 255, 0.92);
+      font-size: 1.45rem;
+      font-weight: 700;
+      line-height: 1.55;
+    }
+
+    .hero-price {
+      display: inline-flex;
+      margin-top: 28px;
+      padding: 18px 22px;
+      color: #fff;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.36);
+      border-radius: 8px;
+      font-size: 1.55rem;
+      font-weight: 900;
+      backdrop-filter: blur(7px);
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 34px;
+    }
+
+    .hero-actions a,
+    .contact-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 58px;
+      padding: 0 26px;
+      border-radius: 7px;
+      font-weight: 900;
+      text-decoration: none;
+      letter-spacing: 0;
+    }
+
+    .hero-actions a:first-child,
+    .contact-button.primary {
+      color: #fff;
+      background: #c98b37;
+      border: 2px solid #c98b37;
+    }
+
+    .hero-actions a:not(:first-child),
+    .contact-button.secondary {
+      color: #fff;
+      background: rgba(0, 0, 0, 0.18);
+      border: 2px solid rgba(255, 255, 255, 0.86);
+    }
+
+    .showcase-section {
+      width: min(1360px, calc(100% - 48px));
+      margin: 0 auto;
+      padding: 78px 0;
+      scroll-margin-top: 96px;
+    }
+
+    .section-eyebrow {
+      margin: 0 0 12px;
+      color: #c98b37;
+      font-size: 0.9rem;
+      font-weight: 900;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .showcase-section h2 {
+      max-width: 900px;
+      margin: 0 0 24px;
+      color: #171d20;
+      font-size: 3rem;
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    .content-panel {
+      padding: 46px;
+      background: #fffaf3;
+      border: 1px solid rgba(32, 32, 31, 0.1);
+      border-radius: 8px;
+      box-shadow: 0 24px 70px rgba(37, 47, 50, 0.1);
+    }
+
+    .description-text {
+      margin: 0;
+      color: #262b2e;
+      font-size: 1.18rem;
+      font-weight: 700;
+      line-height: 1.75;
+      white-space: pre-wrap;
+    }
+
+    .facts-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .fact-item {
+      min-height: 126px;
+      padding: 22px;
       background: #fff;
-      border-bottom: 1px solid var(--line);
+      border: 1px solid rgba(32, 32, 31, 0.1);
+      border-radius: 8px;
     }
 
-    .detail-slider-wrap {
+    .fact-item dt {
+      margin: 0 0 10px;
+      color: #65747b;
+      font-size: 0.9rem;
+      font-weight: 900;
+    }
+
+    .fact-item dd {
+      margin: 0;
+      color: #171d20;
+      font-size: 1.25rem;
+      font-weight: 900;
+      overflow-wrap: anywhere;
+    }
+
+    .gallery-shell {
       position: relative;
+      overflow: hidden;
+      background: #161817;
+      border-radius: 8px;
+      box-shadow: 0 24px 70px rgba(37, 47, 50, 0.14);
     }
 
-    .detail-slider {
+    .gallery-track {
       display: flex;
       overflow-x: auto;
       scroll-behavior: smooth;
@@ -55,295 +275,317 @@
       -webkit-overflow-scrolling: touch;
     }
 
-    .detail-slider::-webkit-scrollbar {
+    .gallery-track::-webkit-scrollbar {
       display: none;
     }
 
-    .detail-slide {
+    .gallery-slide {
       flex: 0 0 100%;
       display: grid;
       place-items: center;
-      margin: 0;
-      aspect-ratio: 16 / 10;
-      background: #eef4f0;
+      height: 720px;
+      max-height: 78vh;
+      min-height: 520px;
+      background: #101211;
       scroll-snap-align: start;
     }
 
-    .detail-slide img {
-      display: block;
+    .gallery-slide img {
       width: 100%;
       height: 100%;
       object-fit: contain;
     }
 
-    .detail-arrow {
+    .gallery-arrow {
       position: absolute;
       top: 50%;
       z-index: 5;
-      display: flex !important;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 56px;
-      height: 56px;
+      width: 58px;
+      height: 58px;
       transform: translateY(-50%);
       color: #fff;
-      background: rgba(31, 122, 99, 0.94);
-      border: 2px solid rgba(255, 255, 255, 0.95);
+      background: rgba(32, 32, 31, 0.72);
+      border: 2px solid rgba(255, 255, 255, 0.82);
       border-radius: 50%;
-      box-shadow: 0 16px 36px rgba(23, 33, 38, 0.28);
-      font-size: 2.4rem;
+      font-size: 2.2rem;
       font-weight: 900;
-      line-height: 1;
       cursor: pointer;
     }
 
-    .detail-arrow:hover {
-      color: #fff;
-      background: var(--brand-dark);
+    .gallery-arrow:hover {
+      background: #c98b37;
+      border-color: #c98b37;
     }
 
-    .detail-arrow.prev {
-      left: 16px;
+    .gallery-arrow.prev {
+      left: 22px;
     }
 
-    .detail-arrow.next {
-      right: 16px;
+    .gallery-arrow.next {
+      right: 22px;
     }
 
-    .swipe-hint {
-      display: none;
-      margin: 0;
-      padding: 10px 16px 0;
-      color: var(--muted);
-      font-size: 0.9rem;
-      font-weight: 800;
-    }
-
-    .detail-thumbs {
+    .gallery-thumbs {
       display: flex;
-      gap: 8px;
+      gap: 10px;
       overflow-x: auto;
-      padding: 10px;
-      border-top: 1px solid var(--line);
+      padding: 14px;
+      background: #20201f;
       scrollbar-width: thin;
     }
 
-    .detail-thumb {
-      flex: 0 0 92px;
+    .gallery-thumb {
+      flex: 0 0 118px;
       padding: 0;
       overflow: hidden;
-      background: #fff;
-      border: 2px solid transparent;
-      border-radius: 8px;
+      background: transparent;
+      border: 3px solid transparent;
+      border-radius: 7px;
       cursor: pointer;
     }
 
-    .detail-thumb.active {
-      border-color: var(--brand);
+    .gallery-thumb.active {
+      border-color: #c98b37;
     }
 
-    .detail-thumb img {
+    .gallery-thumb img {
       display: block;
       width: 100%;
       aspect-ratio: 4 / 3;
       object-fit: cover;
     }
 
-    .detail-content {
-      padding: 28px;
-    }
-
-    .detail-price {
-      margin: 0 0 6px;
-      color: var(--brand-dark);
-      font-size: clamp(2rem, 4vw, 3.1rem);
-      font-weight: 900;
-      line-height: 1;
-    }
-
-    .detail-title {
-      margin: 0;
-      font-size: clamp(1.8rem, 3vw, 2.6rem);
-      line-height: 1.1;
-    }
-
-    .detail-location {
-      margin: 10px 0 24px;
-      color: var(--muted);
-      font-size: 1.1rem;
-      font-weight: 700;
-    }
-
-    .detail-facts {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-      margin: 0 0 28px;
-      padding: 18px 0;
-      border-top: 1px solid var(--line);
-      border-bottom: 1px solid var(--line);
-    }
-
-    .detail-facts dt {
-      color: var(--muted);
-      font-size: 0.82rem;
-      font-weight: 800;
-    }
-
-    .detail-facts dd {
-      margin: 4px 0 0;
-      font-size: 1.2rem;
-      font-weight: 900;
-    }
-
-    .description {
-      white-space: pre-wrap;
-    }
-
-    .contact-card {
-      padding: 24px;
-      position: sticky;
-      top: 96px;
-    }
-
-    .contact-card h2 {
-      margin: 0 0 18px;
-    }
-
-    .contact-card p {
-      margin: 8px 0;
-      color: var(--muted);
-      font-weight: 700;
-    }
-
-    .contact-card strong {
-      color: var(--ink);
-    }
-
-    .detail-message {
-      padding: 28px;
+    .map-frame {
+      overflow: hidden;
       background: #fff;
-      border: 1px solid var(--line);
+      border: 0;
+      border-radius: 8px;
+      box-shadow: 0 24px 70px rgba(37, 47, 50, 0.1);
+    }
+
+    .map-frame iframe {
+      display: block;
+      width: 100%;
+      height: 520px;
+      border: 0;
+    }
+
+    .map-action {
+      margin-top: 28px;
+    }
+
+    .map-action a {
+      display: inline-flex;
+      min-height: 56px;
+      align-items: center;
+      padding: 0 24px;
+      color: #fff;
+      background: #c98b37;
+      border-radius: 7px;
+      font-weight: 900;
+      text-decoration: none;
+    }
+
+    .contact-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 0.72fr);
+      gap: 22px;
+      align-items: stretch;
+    }
+
+    .contact-details {
+      display: grid;
+      gap: 12px;
+      margin: 0;
+    }
+
+    .contact-details div {
+      padding: 18px;
+      background: #fff;
+      border: 1px solid rgba(32, 32, 31, 0.1);
       border-radius: 8px;
     }
 
-    @media (max-width: 900px) {
-      .detail-page {
-        width: min(94vw, 680px);
-        margin: 28px auto 64px;
-      }
-
-      .detail-layout {
-        grid-template-columns: 1fr;
-        gap: 18px;
-      }
-
-      .contact-card {
-        position: static;
-      }
-
-      .detail-slide {
-        aspect-ratio: 4 / 3;
-      }
+    .contact-details dt {
+      color: #65747b;
+      font-size: 0.88rem;
+      font-weight: 900;
     }
 
-    @media (max-width: 560px) {
-      .detail-page {
+    .contact-details dd {
+      margin: 5px 0 0;
+      color: #171d20;
+      font-weight: 900;
+      overflow-wrap: anywhere;
+    }
+
+    .contact-actions {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .contact-button.secondary {
+      color: #1f7a63;
+      background: #fff;
+      border-color: rgba(31, 122, 99, 0.28);
+    }
+
+    @media (max-width: 980px) {
+      .listing-nav {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 14px;
+        padding-top: 16px;
+        padding-bottom: 16px;
+      }
+
+      .listing-nav-links {
         width: 100%;
-        margin: 0 auto 54px;
+        gap: 20px;
       }
 
-      .back-link {
-        margin: 14px 16px;
+      .showcase-hero {
+        min-height: 620px;
       }
 
-      .detail-main,
-      .detail-message {
-        border-right: 0;
-        border-left: 0;
-        border-radius: 0;
-        box-shadow: none;
+      .showcase-hero h1 {
+        font-size: 4rem;
       }
 
-      .detail-content {
-        padding: 20px 16px;
+      .hero-lead {
+        font-size: 1.18rem;
       }
 
-      .detail-price {
-        font-size: 1.8rem;
+      .facts-grid,
+      .contact-layout {
+        grid-template-columns: 1fr 1fr;
       }
 
-      .detail-title {
-        font-size: 1.55rem;
-      }
-
-      .detail-arrow {
-        display: none !important;
-      }
-
-      .detail-location {
-        margin-bottom: 18px;
-        font-size: 1rem;
-      }
-
-      .swipe-hint {
-        display: block;
-      }
-
-      .detail-thumbs {
-        padding: 10px 16px 14px;
-      }
-
-      .detail-thumb {
-        flex-basis: 72px;
-      }
-
-      .detail-facts {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-        padding: 14px 0;
-      }
-
-      .detail-facts dt {
-        font-size: 0.72rem;
-      }
-
-      .detail-facts dd {
-        font-size: 1rem;
-      }
-
-      .contact-card {
-        margin: 0 16px;
-        box-shadow: none;
+      .gallery-slide {
+        height: 560px;
+        min-height: 420px;
       }
     }
-  </style>
-</head>
-<body>
-  <header class="site-header">
-    <a class="logo" href="index.html" aria-label="Boport startside">
-      <span class="logo-mark">B</span>
-      <span>Boport</span>
-    </a>
 
-    <nav class="main-nav" aria-label="Hovedmeny">
+    @media (max-width: 680px) {
+      .listing-nav {
+        min-height: auto;
+      }
+
+      .listing-nav-title {
+        font-size: 1rem;
+      }
+
+      .listing-nav-links a {
+        font-size: 0.92rem;
+      }
+
+      .showcase-hero {
+        min-height: 560px;
+      }
+
+      .showcase-hero-content,
+      .showcase-section {
+        width: min(100% - 28px, 620px);
+      }
+
+      .showcase-hero-content {
+        padding: 82px 0 48px;
+      }
+
+      .showcase-hero h1 {
+        font-size: 2.7rem;
+      }
+
+      .hero-badge {
+        margin-bottom: 18px;
+      }
+
+      .hero-price {
+        font-size: 1.2rem;
+      }
+
+      .hero-actions a,
+      .contact-button,
+      .map-action a {
+        width: 100%;
+      }
+
+      .showcase-section {
+        padding: 48px 0;
+      }
+
+      .showcase-section h2 {
+        font-size: 2.1rem;
+      }
+
+      .content-panel {
+        padding: 24px;
+      }
+
+      .facts-grid,
+      .contact-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .gallery-slide {
+        height: 360px;
+        min-height: 300px;
+      }
+
+      .gallery-arrow {
+        display: none;
+      }
+
+      .gallery-thumb {
+        flex-basis: 88px;
+      }
+
+      .map-frame iframe {
+        height: 360px;
+      }
+    }
+      .description-text + .description-text {
+        margin-top: 22px;
+      }
+
+      .property-unit-section {
+        padding-top: 0;
+      }
+
+      .property-unit-section .content-panel {
+        border-left: 6px solid var(--gold);
+      }
+    </style>
+</head>
+<body class="showcase-page">
+  <header class="listing-nav">
+    <a class="listing-nav-title" id="nav-title" href="index.html">Boport</a>
+    <nav class="listing-nav-links" aria-label="Boligmeny">
+      <a href="#beskrivelse">Beskrivelse</a>
+      <a href="#boliginfo">Boliginfo</a>
+      <a href="#bilder">Bilder</a>
+      <a href="#kart">Kart</a>
+      <a href="#kontakt">Kontakt</a>
       <a href="index.html">Forside</a>
-      <a href="legg-ut-bolig.html">Legg ut bolig</a>
     </nav>
   </header>
 
-  <main class="detail-page">
-    <a class="back-link" href="index.html">Tilbake til forsiden</a>
-    <div id="property-detail" class="detail-message">Laster bolig...</div>
+  <main id="property-detail">
+    <section class="status-panel">Laster bolig...</section>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase-config.js"></script>
   <script>
-    const detail = document.getElementById("property-detail");
-    const client = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
-    const params = new URLSearchParams(window.location.search);
-    const propertyId = params.get("id");
+    const detailRoot = document.getElementById("property-detail");
+    const navTitle = document.getElementById("nav-title");
+    const listingNavLinks = document.querySelector(".listing-nav-links");
+    const fallbackImage = "images/hero-home.png";
 
     function escapeHtml(value) {
       return String(value ?? "")
@@ -368,15 +610,350 @@
       return property.listing_type === "rent" ? "Pris etter avtale" : "Prisantydning kommer";
     }
 
+    function priceHeading(property) {
+      return property.listing_type === "rent" ? "Månedsleie" : "Prisantydning";
+    }
+
     function getListingLabel(property) {
       return property.listing_type === "rent" ? "Leie" : "Salg";
     }
 
-    async function loadProperty() {
-      if (!propertyId) {
-        detail.textContent = "Fant ikke annonsen.";
+    function getLocation(property) {
+      return [property.city, property.postal_code].filter(Boolean).join(", ") || property.address || "Norge";
+    }
+
+    function getMapQuery(property) {
+      return [property.address, property.postal_code, property.city, "Norge"].filter(Boolean).join(", ");
+    }
+
+    function getIntro(property) {
+      const description = String(property.description || "").replace(/\s+/g, " ").trim();
+
+      if (!description) {
+        return "En godkjent boligannonse på Boport med nøkkelinformasjon, bilder, kart og kontaktinformasjon.";
+      }
+
+      return description.length > 170 ? `${description.slice(0, 170).trim()}...` : description;
+    }
+
+    function makeSectionSlug(value) {
+      return String(value || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/æ/g, "ae")
+        .replace(/ø/g, "o")
+        .replace(/å/g, "a")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "") || "seksjon";
+    }
+
+    function textToParagraphs(text) {
+      const paragraphs = String(text || "")
+        .split(/\n{2,}/)
+        .map((part) => part.trim())
+        .filter(Boolean);
+
+      if (!paragraphs.length) {
+        return `<p class="description-text">Ingen beskrivelse er lagt inn ennå.</p>`;
+      }
+
+      return paragraphs
+        .map((paragraph) => `<p class="description-text">${escapeHtml(paragraph)}</p>`)
+        .join("");
+    }
+
+    function parseDescriptionSections(description) {
+      const lines = String(description || "").split(/\r?\n/);
+      const intro = [];
+      const sections = [];
+      let current = null;
+
+      lines.forEach((line) => {
+        const match = line.match(/^\s*#{1,3}\s+(.+?)\s*$/);
+
+        if (match) {
+          const title = match[1].trim();
+          const baseId = makeSectionSlug(title);
+          let id = baseId;
+          let counter = 2;
+
+          while (sections.some((section) => section.id === id)) {
+            id = `${baseId}-${counter}`;
+            counter += 1;
+          }
+
+          current = { title, id, body: [] };
+          sections.push(current);
+          return;
+        }
+
+        if (current) {
+          current.body.push(line);
+        } else {
+          intro.push(line);
+        }
+      });
+
+      return {
+        intro: intro.join("\n").trim(),
+        sections: sections
+          .map((section) => ({
+            ...section,
+            body: section.body.join("\n").trim()
+          }))
+          .filter((section) => section.title)
+      };
+    }
+
+    function buildNavLinks(descriptionSections) {
+      const sectionLinks = descriptionSections.sections
+        .map((section) => `<a href="#${escapeHtml(section.id)}">${escapeHtml(section.title)}</a>`)
+        .join("");
+
+      return `
+        <a href="#beskrivelse">Beskrivelse</a>
+        ${sectionLinks}
+        <a href="#boliginfo">Boliginfo</a>
+        <a href="#bilder">Bilder</a>
+        <a href="#kart">Kart</a>
+        <a href="#kontakt">Kontakt</a>
+        <a href="index.html">Forside</a>
+      `;
+    }
+
+    function renderDescription(descriptionSections) {
+      const introText = descriptionSections.intro || "Ingen beskrivelse er lagt inn ennå.";
+      const introMarkup = `
+        <section class="showcase-section" id="beskrivelse">
+          <p class="section-eyebrow">Beskrivelse</p>
+          <h2>Om boligen</h2>
+          <div class="content-panel">
+            ${textToParagraphs(introText)}
+          </div>
+        </section>
+      `;
+
+      const sectionMarkup = descriptionSections.sections.map((section) => `
+        <section class="showcase-section property-unit-section" id="${escapeHtml(section.id)}">
+          <p class="section-eyebrow">Del av boligen</p>
+          <h2>${escapeHtml(section.title)}</h2>
+          <div class="content-panel">
+            ${textToParagraphs(section.body || "Mer informasjon kommer.")}
+          </div>
+        </section>
+      `).join("");
+
+      return `${introMarkup}${sectionMarkup}`;
+    }
+
+    function fact(label, value) {
+      return `
+        <div class="fact-item">
+          <dt>${escapeHtml(label)}</dt>
+          <dd>${escapeHtml(value || "-")}</dd>
+        </div>
+      `;
+    }
+
+    function buildGallery(images) {
+      const slides = images.map((url, index) => `
+        <figure class="gallery-slide" id="bilde-${index}">
+          <img src="${escapeHtml(url)}" alt="Boligbilde ${index + 1}" loading="${index === 0 ? "eager" : "lazy"}">
+        </figure>
+      `).join("");
+
+      const thumbs = images.map((url, index) => `
+        <button class="gallery-thumb ${index === 0 ? "active" : ""}" type="button" data-slide="${index}" aria-label="Vis bilde ${index + 1}">
+          <img src="${escapeHtml(url)}" alt="">
+        </button>
+      `).join("");
+
+      const arrows = images.length > 1 ? `
+        <button class="gallery-arrow prev" type="button" aria-label="Forrige bilde">‹</button>
+        <button class="gallery-arrow next" type="button" aria-label="Neste bilde">›</button>
+      ` : "";
+
+      return `
+        <div class="gallery-shell">
+          ${arrows}
+          <div class="gallery-track" id="gallery-track">${slides}</div>
+          ${images.length > 1 ? `<div class="gallery-thumbs">${thumbs}</div>` : ""}
+        </div>
+      `;
+    }
+
+    function setupGallery() {
+      const track = document.getElementById("gallery-track");
+
+      if (!track) {
         return;
       }
+
+      const slides = Array.from(track.querySelectorAll(".gallery-slide"));
+      const thumbs = Array.from(document.querySelectorAll(".gallery-thumb"));
+      const prev = document.querySelector(".gallery-arrow.prev");
+      const next = document.querySelector(".gallery-arrow.next");
+
+      function goToSlide(index) {
+        const slide = slides[index];
+
+        if (!slide) {
+          return;
+        }
+
+        track.scrollTo({ left: slide.offsetLeft, behavior: "smooth" });
+      }
+
+      function currentIndex() {
+        return Math.round(track.scrollLeft / Math.max(track.clientWidth, 1));
+      }
+
+      function updateThumbs() {
+        const index = currentIndex();
+        thumbs.forEach((thumb, thumbIndex) => {
+          thumb.classList.toggle("active", thumbIndex === index);
+        });
+      }
+
+      thumbs.forEach((thumb) => {
+        thumb.addEventListener("click", () => goToSlide(Number(thumb.dataset.slide)));
+      });
+
+      if (prev) {
+        prev.addEventListener("click", () => goToSlide(Math.max(currentIndex() - 1, 0)));
+      }
+
+      if (next) {
+        next.addEventListener("click", () => goToSlide(Math.min(currentIndex() + 1, slides.length - 1)));
+      }
+
+      track.addEventListener("scroll", () => window.requestAnimationFrame(updateThumbs));
+    }
+
+    function renderProperty(property, images) {
+      const safeTitle = escapeHtml(property.title || "Boligannonse");
+      const location = getLocation(property);
+      const mapQuery = getMapQuery(property);
+      const mapUrl = `https://www.google.com/maps?q=${encodeURIComponent(mapQuery)}&output=embed`;
+      const mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`;
+      const galleryImages = images.length ? images : [fallbackImage];
+        const heroImage = galleryImages[0];
+        const descriptionSections = parseDescriptionSections(property.description);
+
+      document.title = `${property.title || "Boligannonse"} | Boport`;
+        navTitle.textContent = property.address || property.title || "Boport";
+        if (listingNavLinks) {
+          listingNavLinks.innerHTML = buildNavLinks(descriptionSections);
+        }
+
+      detailRoot.innerHTML = `
+        <section class="showcase-hero">
+          <img class="showcase-hero-photo" src="${escapeHtml(heroImage)}" alt="${safeTitle}">
+          <div class="showcase-hero-content">
+            <span class="hero-badge">${escapeHtml(property.address || location)}</span>
+            <h1>${safeTitle}</h1>
+            <p class="hero-lead">${escapeHtml(getIntro(property))}</p>
+            <p class="hero-price">${escapeHtml(priceHeading(property))}: ${escapeHtml(formatPrice(property))}</p>
+            <div class="hero-actions">
+              <a href="#beskrivelse">Les beskrivelsen</a>
+              <a href="#bilder">Se bildene</a>
+              <a href="#kart">Kart</a>
+            </div>
+          </div>
+        </section>
+
+        <section class="showcase-section" id="beskrivelse">
+          <p class="section-eyebrow">Beskrivelse</p>
+          <h2>Om boligen</h2>
+          <div class="content-panel">
+              ${textToParagraphs(descriptionSections.intro || "Ingen beskrivelse er lagt inn ennå.")}
+            </div>
+          </section>
+          ${descriptionSections.sections.map((section) => `
+          <section class="showcase-section property-unit-section" id="${escapeHtml(section.id)}">
+            <p class="section-eyebrow">Del av boligen</p>
+            <h2>${escapeHtml(section.title)}</h2>
+            <div class="content-panel">
+              ${textToParagraphs(section.body || "Mer informasjon kommer.")}
+            </div>
+          </section>
+          `).join("")}
+
+        <section class="showcase-section" id="boliginfo">
+          <p class="section-eyebrow">Boliginfo</p>
+          <h2>Nøkkelinformasjon</h2>
+          <dl class="facts-grid">
+            ${fact(priceHeading(property), formatPrice(property))}
+            ${fact("Type", getListingLabel(property))}
+            ${fact("Boligtype", property.property_type)}
+            ${fact("Areal", property.size_m2 ? `${property.size_m2} m²` : "")}
+            ${fact("Soverom", property.bedrooms)}
+            ${fact("Adresse", property.address)}
+            ${fact("Sted", location)}
+            ${fact("Postnummer", property.postal_code)}
+          </dl>
+        </section>
+
+        <section class="showcase-section" id="bilder">
+          <p class="section-eyebrow">Bilder</p>
+          <h2>Bildegalleri</h2>
+          ${buildGallery(galleryImages)}
+        </section>
+
+        <section class="showcase-section" id="kart">
+          <p class="section-eyebrow">Kart</p>
+          <h2>Plassering</h2>
+          <div class="map-frame">
+            <iframe src="${mapUrl}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Kart for ${safeTitle}"></iframe>
+          </div>
+          <p class="map-action"><a href="${mapLink}" target="_blank" rel="noopener">Åpne i Google Maps</a></p>
+        </section>
+
+        <section class="showcase-section" id="kontakt">
+          <p class="section-eyebrow">Kontakt</p>
+          <h2>Kontakt om boligen</h2>
+          <div class="contact-layout">
+            <dl class="contact-details">
+              <div>
+                <dt>Kontaktperson</dt>
+                <dd>${escapeHtml(property.contact_name || "-")}</dd>
+              </div>
+              <div>
+                <dt>E-post</dt>
+                <dd>${escapeHtml(property.contact_email || "-")}</dd>
+              </div>
+              <div>
+                <dt>Telefon</dt>
+                <dd>${escapeHtml(property.contact_phone || "-")}</dd>
+              </div>
+            </dl>
+            <div class="contact-actions">
+              ${property.contact_email ? `<a class="contact-button primary" href="mailto:${escapeHtml(property.contact_email)}">Send e-post</a>` : ""}
+              ${property.contact_phone ? `<a class="contact-button secondary" href="tel:${escapeHtml(property.contact_phone)}">Ring kontaktperson</a>` : ""}
+              <a class="contact-button secondary" href="index.html">Tilbake til forsiden</a>
+            </div>
+          </div>
+        </section>
+      `;
+
+      setupGallery();
+    }
+
+    async function loadProperty() {
+      if (!window.supabase || !window.SUPABASE_URL || !window.SUPABASE_KEY) {
+        detailRoot.innerHTML = '<section class="status-panel">Kunne ikke koble til boligdatabasen akkurat nå.</section>';
+        return;
+      }
+
+      const propertyId = new URLSearchParams(window.location.search).get("id");
+
+      if (!propertyId) {
+        detailRoot.innerHTML = '<section class="status-panel">Fant ikke boligannonsen.</section>';
+        return;
+      }
+
+      const client = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
 
       const { data: property, error } = await client
         .from("properties")
@@ -386,136 +963,22 @@
         .single();
 
       if (error || !property) {
-        console.error(error);
-        detail.textContent = "Fant ikke annonsen, eller den er ikke godkjent ennå.";
+        console.error("Kunne ikke hente bolig:", error);
+        detailRoot.innerHTML = '<section class="status-panel">Fant ikke en godkjent boligannonse her.</section>';
         return;
       }
 
-      const { data: images } = await client
+      const { data: imageRows, error: imageError } = await client
         .from("property_images")
         .select("image_url")
         .eq("property_id", propertyId);
 
-      const imageUrls = (images || [])
-        .map((image) => image.image_url)
-        .filter(Boolean);
-
-      if (!imageUrls.length) {
-        imageUrls.push("images/hero-home.png");
+      if (imageError) {
+        console.error("Kunne ikke hente bilder:", imageError);
       }
 
-      const slides = imageUrls
-        .map((imageUrl, index) => `
-          <figure class="detail-slide" aria-label="Bilde ${index + 1} av ${imageUrls.length}">
-            <img src="${escapeHtml(imageUrl)}" alt="Bilde ${index + 1} av boligen"${index === 0 ? "" : ' loading="lazy"'}>
-          </figure>
-        `)
-        .join("");
-
-      const thumbs = imageUrls
-        .map((imageUrl, index) => `
-          <button class="detail-thumb${index === 0 ? " active" : ""}" type="button" data-slide="${index}" aria-label="Vis bilde ${index + 1}">
-            <img src="${escapeHtml(imageUrl)}" alt="">
-          </button>
-        `)
-        .join("");
-      const location = [property.address, property.city, property.postal_code].filter(Boolean).join(", ");
-
-      detail.className = "detail-layout";
-      detail.innerHTML = `
-        <article class="detail-main">
-          <div class="detail-media">
-            <div class="detail-slider-wrap">
-              <div class="detail-slider" id="detail-slider" aria-label="Bilder av boligen">
-                ${slides}
-              </div>
-              ${imageUrls.length > 1 ? `
-                <button class="detail-arrow prev" type="button" data-direction="-1" aria-label="Forrige bilde">&lsaquo;</button>
-                <button class="detail-arrow next" type="button" data-direction="1" aria-label="Neste bilde">&rsaquo;</button>
-              ` : ""}
-            </div>
-            ${imageUrls.length > 1 ? `<p class="swipe-hint">Sveip sideveis for å se flere bilder</p><div class="detail-thumbs">${thumbs}</div>` : ""}
-          </div>
-          <div class="detail-content">
-            <p class="detail-price">${escapeHtml(formatPrice(property))}</p>
-            <h1 class="detail-title">${escapeHtml(property.title)}</h1>
-            <p class="detail-location">${escapeHtml(location || "Norge")}</p>
-
-            <dl class="detail-facts">
-              <div><dt>Soverom</dt><dd>${escapeHtml(property.bedrooms ?? "-")}</dd></div>
-              <div><dt>Areal</dt><dd>${property.size_m2 ? `${escapeHtml(property.size_m2)} m²` : "-"}</dd></div>
-              <div><dt>Type</dt><dd>${escapeHtml(getListingLabel(property))}</dd></div>
-            </dl>
-
-            <h2>Om boligen</h2>
-            <p class="description">${escapeHtml(property.description || "Ingen beskrivelse lagt inn.")}</p>
-          </div>
-        </article>
-
-        <aside class="contact-card">
-          <h2>Kontakt</h2>
-          <p><strong>${escapeHtml(property.contact_name || "Kontaktperson")}</strong></p>
-          <p>${escapeHtml(property.contact_email || "")}</p>
-          <p>${escapeHtml(property.contact_phone || "")}</p>
-          ${property.contact_email ? `<a class="primary-link" href="mailto:${escapeHtml(property.contact_email)}">Send e-post</a>` : ""}
-        </aside>
-      `;
-
-      setupImageSlider();
-    }
-
-    function setupImageSlider() {
-      const slider = document.getElementById("detail-slider");
-      const slides = Array.from(document.querySelectorAll(".detail-slide"));
-      const thumbs = Array.from(document.querySelectorAll(".detail-thumb"));
-      const arrows = Array.from(document.querySelectorAll(".detail-arrow"));
-
-      if (!slider || !slides.length) {
-        return;
-      }
-
-      function getCurrentIndex() {
-        return Math.max(0, Math.min(slides.length - 1, Math.round(slider.scrollLeft / slider.clientWidth)));
-      }
-
-      function setActiveThumb() {
-        const currentIndex = getCurrentIndex();
-        thumbs.forEach((thumb, index) => {
-          thumb.classList.toggle("active", index === currentIndex);
-        });
-      }
-
-      function goToSlide(index) {
-        const nextIndex = (index + slides.length) % slides.length;
-        slides[nextIndex]?.scrollIntoView({
-          behavior: "smooth",
-          block: "nearest",
-          inline: "start"
-        });
-      }
-
-      let frame = null;
-
-      slider.addEventListener("scroll", () => {
-        window.cancelAnimationFrame(frame);
-        frame = window.requestAnimationFrame(setActiveThumb);
-      }, { passive: true });
-
-      thumbs.forEach((thumb) => {
-        thumb.addEventListener("click", () => {
-          const index = Number(thumb.dataset.slide);
-          goToSlide(index);
-        });
-      });
-
-      arrows.forEach((arrow) => {
-        arrow.addEventListener("click", () => {
-          const direction = Number(arrow.dataset.direction);
-          goToSlide(getCurrentIndex() + direction);
-        });
-      });
-
-      setActiveThumb();
+      const images = (imageRows || []).map((image) => image.image_url).filter(Boolean);
+      renderProperty(property, images);
     }
 
     loadProperty();
