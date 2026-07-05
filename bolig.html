@@ -37,6 +37,7 @@
     }
 
     .detail-media {
+      position: relative;
       background: #fff;
       border-bottom: 1px solid var(--line);
     }
@@ -69,6 +70,43 @@
       width: 100%;
       height: 100%;
       object-fit: contain;
+    }
+
+    .detail-arrow {
+      position: absolute;
+      top: 50%;
+      z-index: 2;
+      display: grid;
+      place-items: center;
+      width: 48px;
+      height: 48px;
+      transform: translateY(-50%);
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      box-shadow: 0 10px 24px rgba(23, 33, 38, 0.16);
+      font-size: 2rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .detail-arrow:hover {
+      color: var(--brand-dark);
+      background: #fff;
+    }
+
+    .detail-arrow:disabled {
+      opacity: 0.35;
+      cursor: default;
+    }
+
+    .detail-arrow.prev {
+      left: 16px;
+    }
+
+    .detail-arrow.next {
+      right: 16px;
     }
 
     .swipe-hint {
@@ -238,6 +276,10 @@
         font-size: 1.55rem;
       }
 
+      .detail-arrow {
+        display: none;
+      }
+
       .detail-location {
         margin-bottom: 18px;
         font-size: 1rem;
@@ -385,6 +427,10 @@
             <div class="detail-slider" id="detail-slider" aria-label="Bilder av boligen">
               ${slides}
             </div>
+            ${imageUrls.length > 1 ? `
+              <button class="detail-arrow prev" type="button" data-direction="-1" aria-label="Forrige bilde">‹</button>
+              <button class="detail-arrow next" type="button" data-direction="1" aria-label="Neste bilde">›</button>
+            ` : ""}
             ${imageUrls.length > 1 ? `<p class="swipe-hint">Sveip sideveis for å se flere bilder</p><div class="detail-thumbs">${thumbs}</div>` : ""}
           </div>
           <div class="detail-content">
@@ -419,15 +465,33 @@
       const slider = document.getElementById("detail-slider");
       const slides = Array.from(document.querySelectorAll(".detail-slide"));
       const thumbs = Array.from(document.querySelectorAll(".detail-thumb"));
+      const arrows = Array.from(document.querySelectorAll(".detail-arrow"));
 
       if (!slider || !slides.length || !thumbs.length) {
         return;
       }
 
+      function getCurrentIndex() {
+        return Math.max(0, Math.min(slides.length - 1, Math.round(slider.scrollLeft / slider.clientWidth)));
+      }
+
       function setActiveThumb() {
-        const currentIndex = Math.round(slider.scrollLeft / slider.clientWidth);
+        const currentIndex = getCurrentIndex();
         thumbs.forEach((thumb, index) => {
           thumb.classList.toggle("active", index === currentIndex);
+        });
+        arrows.forEach((arrow) => {
+          const direction = Number(arrow.dataset.direction);
+          arrow.disabled = direction < 0 ? currentIndex === 0 : currentIndex === slides.length - 1;
+        });
+      }
+
+      function goToSlide(index) {
+        const nextIndex = Math.max(0, Math.min(slides.length - 1, index));
+        slides[nextIndex]?.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "start"
         });
       }
 
@@ -441,13 +505,18 @@
       thumbs.forEach((thumb) => {
         thumb.addEventListener("click", () => {
           const index = Number(thumb.dataset.slide);
-          slides[index]?.scrollIntoView({
-            behavior: "smooth",
-            block: "nearest",
-            inline: "start"
-          });
+          goToSlide(index);
         });
       });
+
+      arrows.forEach((arrow) => {
+        arrow.addEventListener("click", () => {
+          const direction = Number(arrow.dataset.direction);
+          goToSlide(getCurrentIndex() + direction);
+        });
+      });
+
+      setActiveThumb();
     }
 
     loadProperty();
