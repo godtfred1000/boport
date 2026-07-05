@@ -537,7 +537,6 @@ select {
   }
 
   .quick-actions,
-  .property-grid,
   .steps,
   .seller-band,
   .contact-section,
@@ -556,6 +555,15 @@ select {
     width: 100%;
   }
 
+  .property-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 340px));
+    gap: 18px;
+  }
+
+  .property-photo {
+    height: 230px;
+  }
+
   .section,
   .seller-band,
   .contact-section,
@@ -572,13 +580,37 @@ select {
 
 @media (max-width: 560px) {
   .site-header {
-    position: static;
+    position: sticky;
+    gap: 10px;
+    min-height: auto;
+    padding: 12px 4vw;
+  }
+
+  .logo {
+    font-size: 1.12rem;
+  }
+
+  .logo-mark {
+    width: 34px;
+    height: 34px;
+  }
+
+  .header-action {
+    min-height: 38px;
+    padding: 0 12px;
+    font-size: 0.94rem;
   }
 
   .main-nav {
+    gap: 18px;
     overflow-x: auto;
     justify-content: flex-start;
     padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+
+  .main-nav::-webkit-scrollbar {
+    display: none;
   }
 
   .hero h1 {
@@ -602,7 +634,48 @@ select {
     padding: 0 8px;
   }
 
-  .property-info dl {
+  .quick-actions a {
+    padding: 18px;
+  }
+
+  .section {
+    margin: 56px auto;
+  }
+
+  .section-heading h2,
+  .seller-band h2,
+  .contact-section h2 {
+    font-size: 2.25rem;
+  }
+
+  .property-grid {
     grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .property-photo {
+    height: 220px;
+  }
+
+  .property-info {
+    padding: 18px;
+  }
+
+  .property-info dl {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .property-info dt {
+    font-size: 0.7rem;
+  }
+
+  .property-info dd {
+    font-size: 0.95rem;
+  }
+
+  .seller-band,
+  .contact-section {
+    padding: 24px;
   }
 }
