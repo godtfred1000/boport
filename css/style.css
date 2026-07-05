@@ -299,7 +299,8 @@ select {
 
 .property-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 380px));
+  justify-content: start;
   align-items: stretch;
 }
 
@@ -330,9 +331,12 @@ select {
 
 .property-photo {
   position: relative;
-  min-height: 260px;
-  background-size: cover;
+  height: 260px;
+  min-height: 0;
+  background-color: #eef4f0;
+  background-size: contain;
   background-position: center;
+  background-repeat: no-repeat;
 }
 
 .photo-1 {
