@@ -1,1 +1,283 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Boligannonse | Boport</title>
+  <meta name="description" content="Se boligannonse på Boport.">
+  <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .detail-page {
+      width: min(1180px, 88vw);
+      margin: 42px auto 92px;
+    }
+
+    .back-link {
+      display: inline-flex;
+      margin-bottom: 22px;
+      color: var(--brand-dark);
+      font-weight: 800;
+    }
+
+    .detail-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) minmax(300px, 0.7fr);
+      gap: 28px;
+      align-items: start;
+    }
+
+    .detail-main,
+    .contact-card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .detail-photo {
+      min-height: 440px;
+      background: url("images/hero-home.png") center/cover;
+    }
+
+    .detail-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+      padding: 10px;
+      background: #fff;
+      border-top: 1px solid var(--line);
+    }
+
+    .detail-gallery img {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+    }
+
+    .detail-content {
+      padding: 28px;
+    }
+
+    .detail-price {
+      margin: 0 0 6px;
+      color: var(--brand-dark);
+      font-size: clamp(2rem, 4vw, 3.1rem);
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .detail-title {
+      margin: 0;
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      line-height: 1.1;
+    }
+
+    .detail-location {
+      margin: 10px 0 24px;
+      color: var(--muted);
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .detail-facts {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin: 0 0 28px;
+      padding: 18px 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .detail-facts dt {
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 800;
+    }
+
+    .detail-facts dd {
+      margin: 4px 0 0;
+      font-size: 1.2rem;
+      font-weight: 900;
+    }
+
+    .description {
+      white-space: pre-wrap;
+    }
+
+    .contact-card {
+      padding: 24px;
+      position: sticky;
+      top: 96px;
+    }
+
+    .contact-card h2 {
+      margin: 0 0 18px;
+    }
+
+    .contact-card p {
+      margin: 8px 0;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .contact-card strong {
+      color: var(--ink);
+    }
+
+    .detail-message {
+      padding: 28px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    @media (max-width: 900px) {
+      .detail-page {
+        width: min(92vw, 680px);
+      }
+
+      .detail-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .contact-card {
+        position: static;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .detail-photo {
+        min-height: 280px;
+      }
+
+      .detail-facts {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="logo" href="index.html" aria-label="Boport startside">
+      <span class="logo-mark">B</span>
+      <span>Boport</span>
+    </a>
+
+    <nav class="main-nav" aria-label="Hovedmeny">
+      <a href="index.html">Forside</a>
+      <a href="legg-ut-bolig.html">Legg ut bolig</a>
+    </nav>
+  </header>
+
+  <main class="detail-page">
+    <a class="back-link" href="index.html">Tilbake til forsiden</a>
+    <div id="property-detail" class="detail-message">Laster bolig...</div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script>
+    const detail = document.getElementById("property-detail");
+    const client = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
+    const params = new URLSearchParams(window.location.search);
+    const propertyId = params.get("id");
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function formatPrice(property) {
+      const formatter = new Intl.NumberFormat("nb-NO");
+
+      if (property.listing_type === "rent" && property.monthly_rent) {
+        return `${formatter.format(property.monthly_rent)} kr/mnd`;
+      }
+
+      if (property.price) {
+        return `${formatter.format(property.price)} kr`;
+      }
+
+      return property.listing_type === "rent" ? "Pris etter avtale" : "Prisantydning kommer";
+    }
+
+    function getListingLabel(property) {
+      return property.listing_type === "rent" ? "Leie" : "Salg";
+    }
+
+    async function loadProperty() {
+      if (!propertyId) {
+        detail.textContent = "Fant ikke annonsen.";
+        return;
+      }
+
+      const { data: property, error } = await client
+        .from("properties")
+        .select("*")
+        .eq("id", propertyId)
+        .eq("status", "approved")
+        .single();
+
+      if (error || !property) {
+        console.error(error);
+        detail.textContent = "Fant ikke annonsen, eller den er ikke godkjent ennå.";
+        return;
+      }
+
+      const { data: images } = await client
+        .from("property_images")
+        .select("image_url")
+        .eq("property_id", propertyId);
+
+      const imageUrl = images?.[0]?.image_url || "images/hero-home.png";
+      const gallery = (images || [])
+        .slice(1)
+        .map((image) => `<img src="${escapeHtml(image.image_url)}" alt="Bilde av boligen">`)
+        .join("");
+      const location = [property.address, property.city, property.postal_code].filter(Boolean).join(", ");
+
+      detail.className = "detail-layout";
+      detail.innerHTML = `
+        <article class="detail-main">
+          <div class="detail-photo" style="background-image: url('${escapeHtml(imageUrl)}')"></div>
+          ${gallery ? `<div class="detail-gallery">${gallery}</div>` : ""}
+          <div class="detail-content">
+            <p class="detail-price">${escapeHtml(formatPrice(property))}</p>
+            <h1 class="detail-title">${escapeHtml(property.title)}</h1>
+            <p class="detail-location">${escapeHtml(location || "Norge")}</p>
+
+            <dl class="detail-facts">
+              <div><dt>Soverom</dt><dd>${escapeHtml(property.bedrooms ?? "-")}</dd></div>
+              <div><dt>Areal</dt><dd>${property.size_m2 ? `${escapeHtml(property.size_m2)} m²` : "-"}</dd></div>
+              <div><dt>Type</dt><dd>${escapeHtml(getListingLabel(property))}</dd></div>
+            </dl>
+
+            <h2>Om boligen</h2>
+            <p class="description">${escapeHtml(property.description || "Ingen beskrivelse lagt inn.")}</p>
+          </div>
+        </article>
+
+        <aside class="contact-card">
+          <h2>Kontakt</h2>
+          <p><strong>${escapeHtml(property.contact_name || "Kontaktperson")}</strong></p>
+          <p>${escapeHtml(property.contact_email || "")}</p>
+          <p>${escapeHtml(property.contact_phone || "")}</p>
+          ${property.contact_email ? `<a class="primary-link" href="mailto:${escapeHtml(property.contact_email)}">Send e-post</a>` : ""}
+        </aside>
+      `;
+    }
+
+    loadProperty();
+  </script>
+</body>
+</html>
 
