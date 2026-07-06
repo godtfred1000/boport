@@ -374,6 +374,19 @@
       message.className = `edit-message ${type}`;
     }
 
+    function getErrorMessage(error) {
+      if (!error) {
+        return "Ukjent feil.";
+      }
+
+      return [
+        error.message,
+        error.details,
+        error.hint,
+        error.code ? `Kode: ${error.code}` : ""
+      ].filter(Boolean).join(" ");
+    }
+
     function markUnsaved() {
       hasUnsavedChanges = true;
     }
@@ -563,19 +576,30 @@
     }
 
     async function saveProperty(statusOverride) {
+      if (!propertyId) {
+        setMessage("Kan ikke lagre: mangler annonse-id i adressen.", "error");
+        return;
+      }
+
       setMessage("Lagrer...", "");
       saveButton.disabled = true;
       draftButton.disabled = true;
 
       try {
         const property = getPropertyFromForm(statusOverride);
-        const { error } = await client
+        const { data: updatedProperty, error } = await client
           .from("properties")
           .update(property)
-          .eq("id", propertyId);
+          .eq("id", propertyId)
+          .select("id")
+          .single();
 
         if (error) {
           throw error;
+        }
+
+        if (!updatedProperty?.id) {
+          throw new Error("Ingen annonse ble oppdatert. Sjekk at id-en i adressen er riktig.");
         }
 
         await saveImages();
@@ -583,7 +607,7 @@
         hasUnsavedChanges = false;
         setMessage("Lagret. Endringene er oppdatert i Supabase.", "success");
       } catch (error) {
-        setMessage("Noe gikk galt ved lagring. Se konsollen for detaljer.", "error");
+        setMessage(`Feil ved lagring: ${getErrorMessage(error)}`, "error");
         console.error(error);
       } finally {
         saveButton.disabled = false;
