@@ -72,6 +72,71 @@
       gap: 12px;
     }
 
+    .image-preview-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .image-preview-item {
+      display: grid;
+      grid-template-columns: 76px 1fr;
+      gap: 12px;
+      align-items: center;
+      padding: 10px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    .image-preview-item.is-hero {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 2px rgba(30, 132, 103, 0.12);
+    }
+
+    .image-preview-item img {
+      width: 76px;
+      height: 58px;
+      object-fit: cover;
+      border-radius: 6px;
+    }
+
+    .image-preview-meta {
+      display: grid;
+      gap: 8px;
+    }
+
+    .image-preview-title,
+    .hero-label {
+      font-weight: 800;
+    }
+
+    .hero-label {
+      color: var(--brand-dark);
+    }
+
+    .image-preview-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .image-preview-actions button {
+      min-height: 34px;
+      padding: 0 10px;
+      color: var(--brand-dark);
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .image-preview-actions button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
     .file-note {
       color: var(--muted);
       font-size: 0.92rem;
@@ -241,6 +306,7 @@
           <button class="clear-button" id="clear-images" type="button">Fjern valgte bilder</button>
         </div>
         <span class="file-note">Bilder er valgfritt. Du kan holde inne Cmd på Mac for å velge flere bilder.</span>
+        <div class="image-preview-list" id="image-preview-list" aria-live="polite"></div>
       </div>
 
       <div class="form-actions">
@@ -259,14 +325,120 @@
     const submitButton = document.getElementById("submit-button");
     const imageInput = document.getElementById("property-images");
     const clearImagesButton = document.getElementById("clear-images");
+    const imagePreviewList = document.getElementById("image-preview-list");
+    let selectedImages = [];
 
     function showMessage(text, isError = false) {
       message.textContent = text;
       message.classList.toggle("error", isError);
     }
 
+    function resetSubmitButton() {
+      submitButton.disabled = false;
+      submitButton.textContent = "Send inn annonse";
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function revokeImagePreviews() {
+      selectedImages.forEach((image) => URL.revokeObjectURL(image.previewUrl));
+    }
+
+    function ensureHeroImage() {
+      if (selectedImages.length && !selectedImages.some((image) => image.isHero)) {
+        selectedImages[0].isHero = true;
+      }
+    }
+
+    function syncImageInputOrder() {
+      if (!window.DataTransfer) {
+        return;
+      }
+
+      const transfer = new DataTransfer();
+      selectedImages.forEach((image) => transfer.items.add(image.file));
+      imageInput.files = transfer.files;
+    }
+
+    function renderImagePreviewList() {
+      ensureHeroImage();
+
+      if (!selectedImages.length) {
+        imagePreviewList.innerHTML = "";
+        return;
+      }
+
+      imagePreviewList.innerHTML = selectedImages.map((image, index) => `
+        <div class="image-preview-item${image.isHero ? " is-hero" : ""}">
+          <img src="${image.previewUrl}" alt="">
+          <div class="image-preview-meta">
+            <span class="image-preview-title">${index + 1}. ${escapeHtml(image.file.name)}</span>
+            <span class="hero-label">${image.isHero ? "Toppbilde" : "Vanlig bilde"}</span>
+            <div class="image-preview-actions">
+              <button type="button" data-action="hero" data-index="${index}" ${image.isHero ? "disabled" : ""}>Bruk som toppbilde</button>
+              <button type="button" data-action="up" data-index="${index}" ${index === 0 ? "disabled" : ""}>Opp</button>
+              <button type="button" data-action="down" data-index="${index}" ${index === selectedImages.length - 1 ? "disabled" : ""}>Ned</button>
+            </div>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    imageInput.addEventListener("change", () => {
+      revokeImagePreviews();
+      selectedImages = Array.from(imageInput.files).map((file, index) => ({
+        file,
+        previewUrl: URL.createObjectURL(file),
+        isHero: index === 0
+      }));
+      renderImagePreviewList();
+
+      if (selectedImages.length) {
+        showMessage("Velg toppbilde og rekkefølge før du sender inn.");
+      }
+    });
+
+    imagePreviewList.addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-action]");
+      if (!button) {
+        return;
+      }
+
+      const index = Number(button.dataset.index);
+      if (!Number.isInteger(index) || !selectedImages[index]) {
+        return;
+      }
+
+      if (button.dataset.action === "hero") {
+        selectedImages.forEach((image, imageIndex) => {
+          image.isHero = imageIndex === index;
+        });
+      }
+
+      if (button.dataset.action === "up" && index > 0) {
+        [selectedImages[index - 1], selectedImages[index]] = [selectedImages[index], selectedImages[index - 1]];
+      }
+
+      if (button.dataset.action === "down" && index < selectedImages.length - 1) {
+        [selectedImages[index + 1], selectedImages[index]] = [selectedImages[index], selectedImages[index + 1]];
+      }
+
+      syncImageInputOrder();
+      renderImagePreviewList();
+    });
+
     clearImagesButton.addEventListener("click", () => {
+      revokeImagePreviews();
+      selectedImages = [];
       imageInput.value = "";
+      renderImagePreviewList();
       showMessage("Bildene er fjernet. Du kan sende inn uten bilde.");
     });
 
@@ -292,14 +464,12 @@
       if (error) {
         console.error(error);
         showMessage("Noe gikk galt da annonsen skulle lagres. Sjekk at alle felt er fylt ut riktig.", true);
-        submitButton.disabled = false;
-        submitButton.textContent = "Send inn annonse";
+        resetSubmitButton();
         return;
       }
 
-      const files = Array.from(imageInput.files);
-
-      for (const file of files) {
+      for (const [index, image] of selectedImages.entries()) {
+        const file = image.file;
         const fileExt = file.name.split(".").pop();
         const fileName = `${property.id}/${crypto.randomUUID()}.${fileExt}`;
 
@@ -310,8 +480,7 @@
         if (uploadError) {
           console.error(uploadError);
           showMessage("Annonsen ble lagret, men bildet kunne ikke lastes opp. Prøv med JPG, PNG eller WEBP.", true);
-          submitButton.disabled = false;
-          submitButton.textContent = "Send inn annonse";
+          resetSubmitButton();
           return;
         }
 
@@ -321,22 +490,25 @@
 
         const { error: imageRowError } = await client.from("property_images").insert({
           property_id: property.id,
-          image_url: data.publicUrl
+          image_url: data.publicUrl,
+          sort_order: index,
+          is_hero: image.isHero
         });
 
         if (imageRowError) {
           console.error(imageRowError);
           showMessage("Annonsen og bildet ble lagret, men bildet ble ikke koblet til annonsen.", true);
-          submitButton.disabled = false;
-          submitButton.textContent = "Send inn annonse";
+          resetSubmitButton();
           return;
         }
       }
 
+      revokeImagePreviews();
+      selectedImages = [];
       form.reset();
+      renderImagePreviewList();
       showMessage("Annonsen er sendt inn og venter på godkjenning.");
-      submitButton.disabled = false;
-      submitButton.textContent = "Send inn annonse";
+      resetSubmitButton();
     });
   </script>
 </body>
