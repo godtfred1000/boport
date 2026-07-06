@@ -267,35 +267,33 @@
     }
 
     .gallery-track {
-      display: flex;
-      overflow-x: auto;
-      scroll-behavior: smooth;
-      scroll-snap-type: x mandatory;
-      scrollbar-width: none;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .gallery-track::-webkit-scrollbar {
-      display: none;
+      display: block;
+      overflow: hidden;
+      background: #101211;
     }
 
     .gallery-slide {
-      flex: 0 0 100%;
-      display: grid;
-      place-items: center;
-      height: 560px;
-      max-height: 560px;
-      min-height: 420px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: min(62vh, 560px);
+      min-height: 360px;
+      padding: 12px;
       background: #101211;
-      scroll-snap-align: start;
+    }
+
+    .gallery-slide.active {
+      display: flex;
     }
 
     .gallery-slide img {
-      width: 100%;
-      max-width: 1100px;
-      height: 100%;
+      display: block;
+      width: auto;
+      max-width: 100%;
+      height: auto;
+      max-height: 100%;
       object-fit: contain;
-      margin: auto;
     }
 
     .gallery-arrow {
@@ -468,8 +466,8 @@
       }
 
       .gallery-slide {
-        height: 560px;
-        min-height: 420px;
+        height: min(58vh, 500px);
+        min-height: 340px;
       }
     }
 
@@ -535,8 +533,9 @@
       }
 
       .gallery-slide {
-        height: 360px;
-        min-height: 300px;
+        height: 320px;
+        min-height: 260px;
+        padding: 8px;
       }
 
       .gallery-arrow {
@@ -760,7 +759,7 @@
 
     function buildGallery(images) {
       const slides = images.map((url, index) => `
-        <figure class="gallery-slide" id="bilde-${index}">
+        <figure class="gallery-slide ${index === 0 ? "active" : ""}" id="bilde-${index}">
           <img src="${escapeHtml(url)}" alt="Boligbilde ${index + 1}" loading="${index === 0 ? "eager" : "lazy"}">
         </figure>
       `).join("");
@@ -796,25 +795,21 @@
       const thumbs = Array.from(document.querySelectorAll(".gallery-thumb"));
       const prev = document.querySelector(".gallery-arrow.prev");
       const next = document.querySelector(".gallery-arrow.next");
+      let activeIndex = 0;
 
       function goToSlide(index) {
-        const slide = slides[index];
-
-        if (!slide) {
+        if (!slides.length) {
           return;
         }
 
-        track.scrollTo({ left: slide.offsetLeft, behavior: "smooth" });
-      }
+        activeIndex = Math.max(0, Math.min(index, slides.length - 1));
 
-      function currentIndex() {
-        return Math.round(track.scrollLeft / Math.max(track.clientWidth, 1));
-      }
+        slides.forEach((slide, slideIndex) => {
+          slide.classList.toggle("active", slideIndex === activeIndex);
+        });
 
-      function updateThumbs() {
-        const index = currentIndex();
         thumbs.forEach((thumb, thumbIndex) => {
-          thumb.classList.toggle("active", thumbIndex === index);
+          thumb.classList.toggle("active", thumbIndex === activeIndex);
         });
       }
 
@@ -823,14 +818,14 @@
       });
 
       if (prev) {
-        prev.addEventListener("click", () => goToSlide(Math.max(currentIndex() - 1, 0)));
+        prev.addEventListener("click", () => goToSlide(activeIndex - 1));
       }
 
       if (next) {
-        next.addEventListener("click", () => goToSlide(Math.min(currentIndex() + 1, slides.length - 1)));
+        next.addEventListener("click", () => goToSlide(activeIndex + 1));
       }
 
-      track.addEventListener("scroll", () => window.requestAnimationFrame(updateThumbs));
+      goToSlide(0);
     }
 
     function renderProperty(property, images, heroImageUrl) {
