@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rediger bolig | Boport</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .edit-page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 48px 20px 80px;
+    }
+
+    .edit-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+
+    .edit-header h1 {
+      margin: 0 0 8px;
+      font-size: clamp(2rem, 4vw, 4rem);
+    }
+
+    .edit-header p {
+      margin: 0;
+      color: #63717a;
+      font-size: 1.05rem;
+    }
+
+    .edit-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+
+    .edit-button {
+      border: 0;
+      border-radius: 8px;
+      padding: 14px 18px;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+      background: #1f856e;
+      color: #fff;
+    }
+
+    .edit-button.secondary {
+      background: #fff;
+      color: #1f332e;
+      border: 1px solid #d8e2de;
+    }
+
+    .edit-button.danger {
+      background: #fff4f1;
+      color: #a8321d;
+      border: 1px solid #ffd4ca;
+    }
+
+    .edit-button:disabled {
+      cursor: not-allowed;
+      opacity: .55;
+    }
+
+    .edit-card {
+      background: #fff;
+      border: 1px solid #dfe8e4;
+      border-radius: 10px;
+      box-shadow: 0 18px 45px rgba(29, 51, 46, .08);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .edit-card h2 {
+      margin: 0 0 18px;
+      font-size: 1.35rem;
+    }
+
+    .edit-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .edit-grid label,
+    .edit-card label {
+      display: grid;
+      gap: 8px;
+      font-weight: 800;
+      color: #617078;
+    }
+
+    .edit-grid .wide,
+    .edit-card .wide {
+      grid-column: 1 / -1;
+    }
+
+    .edit-grid input,
+    .edit-grid select,
+    .edit-card textarea {
+      width: 100%;
+      border: 1px solid #d8e2de;
+      border-radius: 8px;
+      padding: 13px 14px;
+      font: inherit;
+      font-weight: 700;
+      color: #1a2529;
+      background: #fff;
+      box-sizing: border-box;
+    }
+
+    .edit-card textarea {
+      min-height: 180px;
+      resize: vertical;
+    }
+
+    .image-tools {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .image-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .image-item {
+      border: 1px solid #d8e2de;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #f8fbf9;
+    }
+
+    .image-item.dragging {
+      opacity: .55;
+    }
+
+    .image-item.hero {
+      border-color: #1f856e;
+      box-shadow: 0 0 0 3px rgba(31, 133, 110, .16);
+    }
+
+    .image-preview {
+      aspect-ratio: 4 / 3;
+      background: #e9f0ed center / cover no-repeat;
+    }
+
+    .image-meta {
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      width: fit-content;
+      border-radius: 999px;
+      padding: 5px 10px;
+      background: #e7f5ef;
+      color: #16654f;
+      font-size: .85rem;
+      font-weight: 900;
+    }
+
+    .image-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .small-button {
+      border: 1px solid #d8e2de;
+      background: #fff;
+      color: #1f332e;
+      border-radius: 7px;
+      padding: 8px 10px;
+      font: inherit;
+      font-size: .9rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .small-button.danger {
+      color: #a8321d;
+      border-color: #ffd4ca;
+      background: #fff8f6;
+    }
+
+    .small-button:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
+    .edit-message {
+      min-height: 28px;
+      margin-top: 16px;
+      font-weight: 900;
+    }
+
+    .edit-message.success {
+      color: #16654f;
+    }
+
+    .edit-message.error {
+      color: #a8321d;
+    }
+
+    @media (max-width: 840px) {
+      .edit-header {
+        display: grid;
+      }
+
+      .edit-actions {
+        justify-content: flex-start;
+      }
+
+      .edit-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="logo" href="index.html">
+      <span class="logo-mark">B</span>
+      <span>Boport</span>
+    </a>
+    <nav class="main-nav">
+      <a href="index.html">Forside</a>
+      <a href="legg-ut-bolig.html">Legg ut bolig</a>
+    </nav>
+  </header>
+
+  <main class="edit-page">
+    <div class="edit-header">
+      <div>
+        <p class="eyebrow">Administrasjon</p>
+        <h1>Rediger bolig</h1>
+        <p>Endre annonsetekst, bilder, rekkefølge og toppbilde.</p>
+      </div>
+      <div class="edit-actions">
+        <button class="edit-button secondary" id="draft-button" type="button">Lagre som utkast</button>
+        <button class="edit-button secondary" id="preview-button" type="button">Forhåndsvis annonse</button>
+        <button class="edit-button" id="save-button" type="button">Lagre endringer</button>
+      </div>
+    </div>
+
+    <form id="edit-form">
+      <section class="edit-card">
+        <h2>Annonse</h2>
+        <div class="edit-grid">
+          <label>
+            Tittel
+            <input name="title" required>
+          </label>
+          <label>
+            Status
+            <select name="status">
+              <option value="draft">Utkast</option>
+              <option value="pending">Til godkjenning</option>
+              <option value="approved">Godkjent</option>
+            </select>
+          </label>
+          <label>
+            Type annonse
+            <select name="listing_type">
+              <option value="sale">Til salgs</option>
+              <option value="rent">Til leie</option>
+            </select>
+          </label>
+          <label>
+            Boligtype
+            <input name="property_type">
+          </label>
+          <label>
+            Adresse
+            <input name="address">
+          </label>
+          <label>
+            By/sted
+            <input name="city">
+          </label>
+          <label>
+            Postnummer
+            <input name="postal_code">
+          </label>
+          <label>
+            Pris
+            <input name="price" type="number" min="0" step="1">
+          </label>
+          <label>
+            Månedsleie
+            <input name="monthly_rent" type="number" min="0" step="1">
+          </label>
+          <label>
+            Areal m²
+            <input name="size_m2" type="number" min="0" step="1">
+          </label>
+          <label>
+            Soverom
+            <input name="bedrooms" type="number" min="0" step="1">
+          </label>
+          <label>
+            Kontaktperson
+            <input name="contact_name">
+          </label>
+          <label>
+            E-post
+            <input name="contact_email" type="email">
+          </label>
+          <label>
+            Telefon
+            <input name="contact_phone">
+          </label>
+        </div>
+      </section>
+
+      <section class="edit-card">
+        <h2>Beskrivelse</h2>
+        <label class="wide">
+          Beskrivelse
+          <textarea name="description"></textarea>
+        </label>
+      </section>
+
+      <section class="edit-card">
+        <div class="image-tools">
+          <div>
+            <h2>Bilder</h2>
+            <p>Flytt bilder med dra-og-slipp eller bruk Opp/Ned. Toppbildet brukes øverst på annonsen.</p>
+          </div>
+          <label class="edit-button secondary">
+            Last opp nye bilder
+            <input id="new-images" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden>
+          </label>
+        </div>
+        <div class="image-list" id="image-list"></div>
+      </section>
+    </form>
+
+    <p class="edit-message" id="edit-message"></p>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const propertyId = params.get("id");
+    const client = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
+    const form = document.getElementById("edit-form");
+    const imageList = document.getElementById("image-list");
+    const message = document.getElementById("edit-message");
+    const saveButton = document.getElementById("save-button");
+    const draftButton = document.getElementById("draft-button");
+    const previewButton = document.getElementById("preview-button");
+    const newImagesInput = document.getElementById("new-images");
+
+    let images = [];
+    let deletedImages = [];
+    let hasUnsavedChanges = false;
+
+    function setMessage(text, type = "") {
+      message.textContent = text;
+      message.className = `edit-message ${type}`;
+    }
+
+    function markUnsaved() {
+      hasUnsavedChanges = true;
+    }
+
+    function setField(name, value) {
+      const field = form.elements[name];
+      if (field) {
+        field.value = value ?? "";
+      }
+    }
+
+    function getNumber(value) {
+      return value === "" || value === null ? null : Number(value);
+    }
+
+    function normalizeHero() {
+      const heroIndex = images.findIndex((image) => image.is_hero);
+      images = images.map((image, index) => ({
+        ...image,
+        sort_order: index,
+        is_hero: heroIndex === -1 ? index === 0 : index === heroIndex
+      }));
+    }
+
+    function moveImage(fromIndex, toIndex) {
+      if (toIndex < 0 || toIndex >= images.length) {
+        return;
+      }
+
+      const [image] = images.splice(fromIndex, 1);
+      images.splice(toIndex, 0, image);
+      normalizeHero();
+      markUnsaved();
+      renderImages();
+    }
+
+    function renderImages() {
+      normalizeHero();
+      imageList.innerHTML = images.map((image, index) => `
+        <article class="image-item ${image.is_hero ? "hero" : ""}" draggable="true" data-index="${index}">
+          <div class="image-preview" style="background-image:url('${image.preview_url || image.image_url}')"></div>
+          <div class="image-meta">
+            ${image.is_hero ? '<span class="hero-badge">Toppbilde</span>' : '<span></span>'}
+            <div class="image-buttons">
+              <button class="small-button" type="button" data-action="up" data-index="${index}" ${index === 0 ? "disabled" : ""}>Opp</button>
+              <button class="small-button" type="button" data-action="down" data-index="${index}" ${index === images.length - 1 ? "disabled" : ""}>Ned</button>
+              <button class="small-button" type="button" data-action="hero" data-index="${index}">Bruk som toppbilde</button>
+              <button class="small-button danger" type="button" data-action="delete" data-index="${index}">Slett</button>
+            </div>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function getPropertyFromForm(statusOverride) {
+      const formData = new FormData(form);
+      return {
+        title: formData.get("title"),
+        status: statusOverride || formData.get("status") || "pending",
+        listing_type: formData.get("listing_type"),
+        property_type: formData.get("property_type"),
+        address: formData.get("address"),
+        city: formData.get("city"),
+        postal_code: formData.get("postal_code"),
+        price: getNumber(formData.get("price")),
+        monthly_rent: getNumber(formData.get("monthly_rent")),
+        size_m2: getNumber(formData.get("size_m2")),
+        bedrooms: getNumber(formData.get("bedrooms")),
+        contact_name: formData.get("contact_name"),
+        contact_email: formData.get("contact_email"),
+        contact_phone: formData.get("contact_phone"),
+        description: formData.get("description")
+      };
+    }
+
+    async function loadProperty() {
+      if (!propertyId) {
+        setMessage("Mangler annonse-id i adressen.", "error");
+        return;
+      }
+
+      const { data: property, error: propertyError } = await client
+        .from("properties")
+        .select("*")
+        .eq("id", propertyId)
+        .single();
+
+      if (propertyError) {
+        setMessage("Fant ikke annonsen.", "error");
+        console.error(propertyError);
+        return;
+      }
+
+      Object.keys(property).forEach((key) => setField(key, property[key]));
+
+      const { data: imageRows, error: imageError } = await client
+        .from("property_images")
+        .select("id, property_id, image_url, sort_order, is_hero")
+        .eq("property_id", propertyId)
+        .order("sort_order", { ascending: true });
+
+      if (imageError) {
+        setMessage("Annonsen ble hentet, men bildene kunne ikke hentes.", "error");
+        console.error(imageError);
+        return;
+      }
+
+      images = (imageRows || []).map((image, index) => ({
+        ...image,
+        sort_order: image.sort_order ?? index,
+        is_hero: Boolean(image.is_hero)
+      }));
+
+      renderImages();
+      hasUnsavedChanges = false;
+    }
+
+    function getStoragePathFromPublicUrl(publicUrl) {
+      const marker = "/storage/v1/object/public/property-images/";
+      const index = publicUrl.indexOf(marker);
+      return index === -1 ? null : decodeURIComponent(publicUrl.slice(index + marker.length));
+    }
+
+    async function deleteRemovedImages() {
+      for (const image of deletedImages) {
+        if (image.id) {
+          await client.from("property_images").delete().eq("id", image.id);
+        }
+
+        const storagePath = image.image_url ? getStoragePathFromPublicUrl(image.image_url) : null;
+        if (storagePath) {
+          await client.storage.from("property-images").remove([storagePath]);
+        }
+      }
+      deletedImages = [];
+    }
+
+    async function uploadNewImage(image, index) {
+      const fileExt = image.file.name.split(".").pop();
+      const fileName = `${propertyId}/${crypto.randomUUID()}.${fileExt}`;
+      const { error: uploadError } = await client.storage
+        .from("property-images")
+        .upload(fileName, image.file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data } = client.storage.from("property-images").getPublicUrl(fileName);
+
+      const { error: insertError } = await client.from("property_images").insert({
+        property_id: propertyId,
+        image_url: data.publicUrl,
+        sort_order: index,
+        is_hero: image.is_hero
+      });
+
+      if (insertError) {
+        throw insertError;
+      }
+    }
+
+    async function saveImages() {
+      normalizeHero();
+      await deleteRemovedImages();
+
+      for (let index = 0; index < images.length; index += 1) {
+        const image = images[index];
+
+        if (image.file) {
+          await uploadNewImage(image, index);
+          continue;
+        }
+
+        const { error } = await client
+          .from("property_images")
+          .update({
+            sort_order: index,
+            is_hero: image.is_hero
+          })
+          .eq("id", image.id);
+
+        if (error) {
+          throw error;
+        }
+      }
+    }
+
+    async function saveProperty(statusOverride) {
+      setMessage("Lagrer...", "");
+      saveButton.disabled = true;
+      draftButton.disabled = true;
+
+      try {
+        const property = getPropertyFromForm(statusOverride);
+        const { error } = await client
+          .from("properties")
+          .update(property)
+          .eq("id", propertyId);
+
+        if (error) {
+          throw error;
+        }
+
+        await saveImages();
+        await loadProperty();
+        hasUnsavedChanges = false;
+        setMessage("Lagret. Endringene er oppdatert i Supabase.", "success");
+      } catch (error) {
+        setMessage("Noe gikk galt ved lagring. Se konsollen for detaljer.", "error");
+        console.error(error);
+      } finally {
+        saveButton.disabled = false;
+        draftButton.disabled = false;
+      }
+    }
+
+    imageList.addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-action]");
+      if (!button) {
+        return;
+      }
+
+      const index = Number(button.dataset.index);
+      const action = button.dataset.action;
+
+      if (action === "up") {
+        moveImage(index, index - 1);
+      }
+
+      if (action === "down") {
+        moveImage(index, index + 1);
+      }
+
+      if (action === "hero") {
+        images = images.map((image, imageIndex) => ({ ...image, is_hero: imageIndex === index }));
+        markUnsaved();
+        renderImages();
+      }
+
+      if (action === "delete") {
+        const [removed] = images.splice(index, 1);
+        if (removed && !removed.file) {
+          deletedImages.push(removed);
+        }
+        normalizeHero();
+        markUnsaved();
+        renderImages();
+      }
+    });
+
+    imageList.addEventListener("dragstart", (event) => {
+      const item = event.target.closest(".image-item");
+      if (!item) {
+        return;
+      }
+
+      event.dataTransfer.setData("text/plain", item.dataset.index);
+      item.classList.add("dragging");
+    });
+
+    imageList.addEventListener("dragend", (event) => {
+      const item = event.target.closest(".image-item");
+      if (item) {
+        item.classList.remove("dragging");
+      }
+    });
+
+    imageList.addEventListener("dragover", (event) => {
+      event.preventDefault();
+    });
+
+    imageList.addEventListener("drop", (event) => {
+      event.preventDefault();
+      const item = event.target.closest(".image-item");
+      if (!item) {
+        return;
+      }
+
+      const fromIndex = Number(event.dataTransfer.getData("text/plain"));
+      const toIndex = Number(item.dataset.index);
+      moveImage(fromIndex, toIndex);
+    });
+
+    newImagesInput.addEventListener("change", () => {
+      const newFiles = Array.from(newImagesInput.files || []);
+      const shouldSetHero = images.length === 0 && newFiles.length > 0;
+
+      newFiles.forEach((file, index) => {
+        images.push({
+          file,
+          preview_url: URL.createObjectURL(file),
+          image_url: "",
+          sort_order: images.length,
+          is_hero: shouldSetHero && index === 0
+        });
+      });
+
+      newImagesInput.value = "";
+      markUnsaved();
+      renderImages();
+    });
+
+    form.addEventListener("input", markUnsaved);
+    form.addEventListener("change", markUnsaved);
+    saveButton.addEventListener("click", () => saveProperty());
+    draftButton.addEventListener("click", () => saveProperty("draft"));
+    previewButton.addEventListener("click", () => {
+      if (propertyId) {
+        window.open(`bolig.html?id=${encodeURIComponent(propertyId)}`, "_blank");
+      }
+    });
+
+    window.addEventListener("beforeunload", (event) => {
+      if (!hasUnsavedChanges) {
+        return;
+      }
+
+      event.preventDefault();
+      event.returnValue = "";
+    });
+
+    loadProperty();
+  </script>
+</body>
+</html>
