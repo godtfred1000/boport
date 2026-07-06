@@ -260,6 +260,8 @@
 
     .gallery-shell {
       position: relative;
+      width: min(1120px, 100%);
+      margin: 0 auto;
       overflow: hidden;
       background: #161817;
       border-radius: 8px;
@@ -267,33 +269,39 @@
     }
 
     .gallery-track {
-      display: block;
-      overflow: hidden;
-      background: #101211;
+      display: flex;
+      overflow-x: auto;
+      scroll-behavior: smooth;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .gallery-track::-webkit-scrollbar {
+      display: none;
     }
 
     .gallery-slide {
-      display: none;
+      flex: 0 0 100%;
+      display: flex;
       align-items: center;
       justify-content: center;
-      width: 100%;
-      height: min(62vh, 560px);
-      min-height: 360px;
-      padding: 12px;
+      height: clamp(340px, 52vw, 590px);
+      max-height: calc(100vh - 210px);
+      min-height: 320px;
       background: #101211;
-    }
-
-    .gallery-slide.active {
-      display: flex;
+      scroll-snap-align: start;
+      overflow: hidden;
     }
 
     .gallery-slide img {
       display: block;
-      width: auto;
+      width: 100%;
+      height: 100%;
       max-width: 100%;
-      height: auto;
       max-height: 100%;
       object-fit: contain;
+      object-position: center center;
     }
 
     .gallery-arrow {
@@ -465,9 +473,14 @@
         grid-template-columns: 1fr 1fr;
       }
 
+      .gallery-shell {
+        width: min(1040px, 100%);
+      }
+
       .gallery-slide {
-        height: min(58vh, 500px);
-        min-height: 340px;
+        height: clamp(320px, 56vw, 520px);
+        max-height: calc(100vh - 190px);
+        min-height: 300px;
       }
     }
 
@@ -533,9 +546,9 @@
       }
 
       .gallery-slide {
-        height: 320px;
-        min-height: 260px;
-        padding: 8px;
+        height: min(360px, 62vw);
+        max-height: 420px;
+        min-height: 240px;
       }
 
       .gallery-arrow {
@@ -759,7 +772,7 @@
 
     function buildGallery(images) {
       const slides = images.map((url, index) => `
-        <figure class="gallery-slide ${index === 0 ? "active" : ""}" id="bilde-${index}">
+        <figure class="gallery-slide" id="bilde-${index}">
           <img src="${escapeHtml(url)}" alt="Boligbilde ${index + 1}" loading="${index === 0 ? "eager" : "lazy"}">
         </figure>
       `).join("");
@@ -795,21 +808,25 @@
       const thumbs = Array.from(document.querySelectorAll(".gallery-thumb"));
       const prev = document.querySelector(".gallery-arrow.prev");
       const next = document.querySelector(".gallery-arrow.next");
-      let activeIndex = 0;
 
       function goToSlide(index) {
-        if (!slides.length) {
+        const slide = slides[index];
+
+        if (!slide) {
           return;
         }
 
-        activeIndex = Math.max(0, Math.min(index, slides.length - 1));
+        track.scrollTo({ left: index * track.clientWidth, behavior: "smooth" });
+      }
 
-        slides.forEach((slide, slideIndex) => {
-          slide.classList.toggle("active", slideIndex === activeIndex);
-        });
+      function currentIndex() {
+        return Math.round(track.scrollLeft / Math.max(track.clientWidth, 1));
+      }
 
+      function updateThumbs() {
+        const index = currentIndex();
         thumbs.forEach((thumb, thumbIndex) => {
-          thumb.classList.toggle("active", thumbIndex === activeIndex);
+          thumb.classList.toggle("active", thumbIndex === index);
         });
       }
 
@@ -818,14 +835,14 @@
       });
 
       if (prev) {
-        prev.addEventListener("click", () => goToSlide(activeIndex - 1));
+        prev.addEventListener("click", () => goToSlide(Math.max(currentIndex() - 1, 0)));
       }
 
       if (next) {
-        next.addEventListener("click", () => goToSlide(activeIndex + 1));
+        next.addEventListener("click", () => goToSlide(Math.min(currentIndex() + 1, slides.length - 1)));
       }
 
-      goToSlide(0);
+      track.addEventListener("scroll", () => window.requestAnimationFrame(updateThumbs));
     }
 
     function renderProperty(property, images, heroImageUrl) {
