@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mine annonser | Boport</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .account-page {
+      max-width: 1100px;
+      margin: 64px auto;
+      padding: 0 20px;
+    }
+
+    .account-header {
+      align-items: flex-start;
+      display: flex;
+      gap: 16px;
+      justify-content: space-between;
+      margin-bottom: 28px;
+    }
+
+    .account-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .ad-list {
+      display: grid;
+      gap: 16px;
+    }
+
+    .ad-card {
+      align-items: center;
+      background: #fff;
+      border: 1px solid #dfe7e5;
+      border-radius: 16px;
+      box-shadow: 0 14px 35px rgba(26, 46, 51, 0.07);
+      display: grid;
+      gap: 18px;
+      grid-template-columns: 1fr auto;
+      padding: 22px;
+    }
+
+    .ad-card h2 {
+      font-size: 24px;
+      margin: 0 0 8px;
+    }
+
+    .ad-meta {
+      color: #61727a;
+      font-weight: 700;
+    }
+
+    .status-pill {
+      background: #eef7f4;
+      border-radius: 999px;
+      color: #1b8068;
+      display: inline-flex;
+      font-weight: 800;
+      margin-bottom: 10px;
+      padding: 6px 10px;
+    }
+
+    .status-pill.pending {
+      background: #fff6df;
+      color: #b26b00;
+    }
+
+    .status-pill.draft {
+      background: #eef1f2;
+      color: #61727a;
+    }
+
+    .ad-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .empty-state {
+      background: #fff;
+      border: 1px solid #dfe7e5;
+      border-radius: 16px;
+      color: #61727a;
+      font-weight: 700;
+      padding: 28px;
+    }
+
+    .account-message.error {
+      color: #b83224;
+      font-weight: 800;
+    }
+
+    @media (max-width: 760px) {
+      .account-header,
+      .ad-card {
+        display: block;
+      }
+
+      .ad-actions {
+        justify-content: flex-start;
+        margin-top: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="logo" href="index.html" aria-label="Boport startside">
+      <span class="logo-mark">B</span>
+      <span>Boport</span>
+    </a>
+    <nav class="main-nav" aria-label="Hovedmeny">
+      <a href="index.html">Forside</a>
+      <a href="legg-ut-bolig.html">Legg ut bolig</a>
+    </nav>
+  </header>
+
+  <main class="account-page">
+    <div class="account-header">
+      <div>
+        <p class="eyebrow">Min side</p>
+        <h1>Mine annonser</h1>
+        <p>Her kan du redigere annonser som er knyttet til din innlogging.</p>
+      </div>
+      <div class="account-actions">
+        <a class="search-button" href="legg-ut-bolig.html">Ny annonse</a>
+        <button class="secondary-link" id="logout-button" type="button">Logg ut</button>
+      </div>
+    </div>
+
+    <p id="account-message" class="account-message"></p>
+    <section id="ad-list" class="ad-list" aria-live="polite"></section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script>
+    const client = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
+    const adList = document.getElementById("ad-list");
+    const message = document.getElementById("account-message");
+    const logoutButton = document.getElementById("logout-button");
+    let currentUser = null;
+
+    function getLoginRedirectUrl() {
+      return `login.html?redirect=${encodeURIComponent("mine-annonser.html")}`;
+    }
+
+    function formatPrice(property) {
+      const value = property.price || property.monthly_rent;
+
+      if (!value) {
+        return "Pris ikke satt";
+      }
+
+      return `${new Intl.NumberFormat("nb-NO").format(value)} kr`;
+    }
+
+    function getStatusText(status) {
+      if (status === "approved") return "Godkjent";
+      if (status === "draft") return "Utkast";
+      return "Venter på godkjenning";
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    async function requireLogin() {
+      const { data, error } = await client.auth.getSession();
+
+      if (error || !data.session?.user) {
+        window.location.href = getLoginRedirectUrl();
+        return false;
+      }
+
+      currentUser = data.session.user;
+      return true;
+    }
+
+    function renderAds(properties) {
+      if (!properties.length) {
+        adList.innerHTML = `<div class="empty-state">Du har ingen annonser ennå.</div>`;
+        return;
+      }
+
+      adList.innerHTML = properties.map((property) => `
+        <article class="ad-card">
+          <div>
+            <span class="status-pill ${escapeHtml(property.status)}">${getStatusText(property.status)}</span>
+            <h2>${escapeHtml(property.title || "Uten tittel")}</h2>
+            <p class="ad-meta">${escapeHtml([property.city, property.postal_code].filter(Boolean).join(", "))}</p>
+            <p class="ad-meta">${formatPrice(property)}</p>
+          </div>
+          <div class="ad-actions">
+            <a class="secondary-link" href="rediger-bolig.html?id=${encodeURIComponent(property.id)}">Rediger</a>
+            <a class="secondary-link" href="bolig.html?id=${encodeURIComponent(property.id)}" target="_blank" rel="noopener">Forhåndsvis</a>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    async function loadMyAds() {
+      const isLoggedIn = await requireLogin();
+
+      if (!isLoggedIn) return;
+
+      message.textContent = "Henter annonser...";
+
+      const { data, error } = await client
+        .from("properties")
+        .select("id, title, city, postal_code, price, monthly_rent, status, created_at")
+        .eq("user_id", currentUser.id)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        message.textContent = `Kunne ikke hente annonsene: ${error.message}`;
+        message.className = "account-message error";
+        return;
+      }
+
+      message.textContent = "";
+      renderAds(data || []);
+    }
+
+    logoutButton.addEventListener("click", async () => {
+      await client.auth.signOut();
+      window.location.href = "login.html";
+    });
+
+    loadMyAds();
+  </script>
+</body>
+</html>
