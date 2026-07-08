@@ -57,6 +57,14 @@
       white-space: nowrap;
     }
 
+    .header-logout {
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      font: inherit;
+    }
+
     @media (max-width: 1000px) {
       .site-header {
         height: auto;
@@ -107,8 +115,9 @@
     </nav>
 
     <div class="header-actions">
-      <a class="header-link" href="login.html">Logg inn</a>
-      <a class="header-link" href="mine-annonser.html">Mine annonser</a>
+      <a class="header-link" id="login-link" href="login.html">Logg inn</a>
+      <a class="header-link" id="my-ads-link" href="mine-annonser.html">Mine annonser</a>
+      <button class="header-link header-logout" id="logout-button" type="button" hidden>Logg ut</button>
       <a class="header-action" href="legg-ut-bolig.html">Legg ut bolig</a>
     </div>
   </header>
@@ -246,5 +255,32 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase-config.js"></script>
   <script src="js/script.js"></script>
+  <script>
+    const headerClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
+
+    async function updateHeaderLoginState() {
+      const loginLink = document.getElementById("login-link");
+      const myAdsLink = document.getElementById("my-ads-link");
+      const logoutButton = document.getElementById("logout-button");
+
+      if (!loginLink || !myAdsLink || !logoutButton) {
+        return;
+      }
+
+      const { data } = await headerClient.auth.getSession();
+      const isLoggedIn = Boolean(data.session?.user);
+
+      loginLink.hidden = isLoggedIn;
+      myAdsLink.hidden = !isLoggedIn;
+      logoutButton.hidden = !isLoggedIn;
+    }
+
+    document.getElementById("logout-button")?.addEventListener("click", async () => {
+      await headerClient.auth.signOut();
+      window.location.href = "index.html";
+    });
+
+    updateHeaderLoginState();
+  </script>
 </body>
 </html>
