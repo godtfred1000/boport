@@ -7,27 +7,110 @@
   <meta name="description" content="Boport samler kjøp, salg og utleie av bolig i Norge på ett sted.">
   <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="css/style.css">
+
+  <style>
+    .site-header {
+      min-height: 88px;
+      padding: 0 6%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      background: #fff;
+    }
+
+    .site-header .logo {
+      flex-shrink: 0;
+      text-decoration: none;
+    }
+
+    .main-nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 22px;
+      flex: 1;
+    }
+
+    .main-nav a,
+    .header-link {
+      color: #111827;
+      text-decoration: none;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .main-nav a:hover,
+    .header-link:hover {
+      color: #0f7b5f;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+
+    .header-actions .header-action {
+      white-space: nowrap;
+    }
+
+    @media (max-width: 1000px) {
+      .site-header {
+        height: auto;
+        min-height: 0;
+        padding: 18px 5%;
+        flex-wrap: wrap;
+      }
+
+      .main-nav {
+        order: 3;
+        width: 100%;
+        flex: 0 0 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 14px;
+      }
+
+      .header-actions {
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .site-header {
+        align-items: flex-start;
+      }
+
+      .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+      }
+    }
+  </style>
 </head>
 <body>
   <header class="site-header">
-    <a class="logo" href="#" aria-label="Boport startside">
+    <a class="logo" href="index.html" aria-label="Boport startside">
       <span class="logo-mark">B</span>
       <span>Boport</span>
     </a>
 
-  
-      <nav>
-  <a href="boliger.html">Boliger</a>
-  <a href="selg-bolig.html">Selg bolig</a>
-  <a href="leie.html">Leie</a>
-  <a href="kontakt.html">Kontakt</a>
-  <a href="legg-ut-bolig.html">Legg ut bolig</a>
-  <a href="login.html">Logg inn / registrer</a>
-  <a href="mine-annonser.html">Mine annonser</a>
-</nav>
-  
+    <nav class="main-nav" aria-label="Hovedmeny">
+      <a href="boliger.html">Boliger</a>
+      <a href="selg-bolig.html">Selg bolig</a>
+      <a href="leie.html">Leie</a>
+      <a href="kontakt.html">Kontakt</a>
+    </nav>
 
-    <a class="header-action" href="legg-ut-bolig.html">Legg ut bolig</a>
+    <div class="header-actions">
+      <a class="header-link" href="login.html">Logg inn</a>
+      <a class="header-link" href="mine-annonser.html">Mine annonser</a>
+      <a class="header-action" href="legg-ut-bolig.html">Legg ut bolig</a>
+    </div>
   </header>
 
   <main>
