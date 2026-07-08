@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bruker opprettet | Boport</title>
+  <meta name="description" content="Din Boport-bruker er bekreftet.">
+  <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .callback-page {
+      min-height: calc(100vh - 88px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 20px;
+      background: #f3f8f6;
+    }
+
+    .callback-card {
+      width: min(680px, 100%);
+      background: #fff;
+      border: 1px solid #dfe8e4;
+      border-radius: 18px;
+      box-shadow: 0 20px 50px rgba(29, 51, 46, 0.10);
+      padding: 38px;
+      text-align: center;
+    }
+
+    .success-mark {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: #e7f5ef;
+      color: #0f7b5f;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 34px;
+      font-weight: 900;
+      margin-bottom: 18px;
+    }
+
+    .callback-card h1 {
+      margin: 0 0 14px;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      color: #142024;
+    }
+
+    .callback-card p {
+      margin: 0 auto 26px;
+      max-width: 520px;
+      color: #61727a;
+      font-size: 1.08rem;
+      line-height: 1.6;
+      font-weight: 650;
+    }
+
+    .callback-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .callback-actions a {
+      text-decoration: none;
+    }
+
+    .callback-note {
+      margin-top: 24px;
+      font-size: 0.95rem;
+      color: #7b8b92;
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="logo" href="index.html" aria-label="Boport startside">
+      <span class="logo-mark">B</span>
+      <span>Boport</span>
+    </a>
+    <nav class="main-nav" aria-label="Hovedmeny">
+      <a href="index.html">Forside</a>
+      <a href="legg-ut-bolig.html">Legg ut bolig</a>
+    </nav>
+  </header>
+
+  <main class="callback-page">
+    <section class="callback-card">
+      <div class="success-mark">✓</div>
+      <h1>Du har nå laget en ny bruker på Boport</h1>
+      <p>E-postadressen er bekreftet. Du kan nå legge inn en ny annonse eller gå til Mine annonser.</p>
+      <div class="callback-actions">
+        <a class="search-button" href="legg-ut-bolig.html">Legg inn ny annonse</a>
+        <a class="secondary-link" href="mine-annonser.html">Mine annonser</a>
+      </div>
+      <div class="callback-note" id="callback-note">Du er klar til å bruke Boport.</div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script>
+    const note = document.getElementById("callback-note");
+
+    async function handleCallback() {
+      if (!window.SUPABASE_URL || !window.SUPABASE_KEY || !window.supabase) {
+        note.textContent = "Brukeren er bekreftet. Du kan fortsette til Boport.";
+        return;
+      }
+
+      const client = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
+
+      try {
+        const { data } = await client.auth.getSession();
+        if (data?.session?.user) {
+          note.textContent = "Du er innlogget og klar til å legge inn annonse.";
+        } else {
+          note.textContent = "Brukeren er bekreftet. Logg inn hvis du blir bedt om det.";
+        }
+      } catch (error) {
+        note.textContent = "Brukeren er bekreftet. Du kan fortsette til Boport.";
+      }
+    }
+
+    handleCallback();
+  </script>
+</body>
+</html>
