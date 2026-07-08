@@ -628,7 +628,7 @@
         return;
       }
 
-      const secondConfirm = window.confirm("Dette kan ikke angres. Annonsen og bildene blir slettet. Vil du fortsette?");
+      const secondConfirm = window.confirm("Dette kan ikke angres. Annonsen blir slettet. Vil du fortsette?");
       if (!secondConfirm) {
         return;
       }
@@ -639,47 +639,20 @@
       deletePropertyButton.disabled = true;
 
       try {
-        const { data: imageRows, error: imageFetchError } = await client
-          .from("property_images")
-          .select("id, image_url")
-          .eq("property_id", propertyId);
-
-        if (imageFetchError) {
-          throw imageFetchError;
-        }
-
-        const storagePaths = (imageRows || [])
-          .map((image) => getStoragePathFromPublicUrl(image.image_url))
-          .filter(Boolean);
-
-        if ((imageRows || []).length) {
-          const { error: imageDeleteError } = await client
-            .from("property_images")
-            .delete()
-            .eq("property_id", propertyId);
-
-          if (imageDeleteError) {
-            throw imageDeleteError;
-          }
-        }
-
-        if (storagePaths.length) {
-          const { error: storageDeleteError } = await client.storage
-            .from("property-images")
-            .remove(storagePaths);
-
-          if (storageDeleteError) {
-            console.warn("Bildene ble ikke slettet fra Storage:", storageDeleteError);
-          }
-        }
-
-        const { error: propertyDeleteError } = await client
+        // Slett bare selve annonsen. Database-regelen ON DELETE CASCADE sletter bildekoblingene.
+        // Storage-bildefiler kan eventuelt ryddes senere, men skal ikke stoppe sletting av annonsen.
+        const { data, error } = await client
           .from("properties")
           .delete()
-          .eq("id", propertyId);
+          .eq("id", propertyId)
+          .select("id");
 
-        if (propertyDeleteError) {
-          throw propertyDeleteError;
+        if (error) {
+          throw error;
+        }
+
+        if (!data || data.length === 0) {
+          throw new Error("Ingen annonse ble slettet. Sjekk at du er logget inn og eier annonsen.");
         }
 
         hasUnsavedChanges = false;
