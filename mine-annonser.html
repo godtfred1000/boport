@@ -21,8 +21,7 @@
       margin-bottom: 28px;
     }
 
-    .account-actions,
-    .ad-actions {
+    .account-actions {
       display: flex;
       flex-wrap: wrap;
       gap: 12px;
@@ -31,16 +30,15 @@
     .account-message {
       background: #fff;
       border: 1px solid #dfe7e5;
-      border-radius: 14px;
-      color: #1b8068;
+      border-radius: 16px;
+      color: #08745f;
       font-weight: 800;
-      margin: 0 0 18px;
-      padding: 16px 18px;
+      margin: 18px 0;
+      padding: 18px;
     }
 
     .account-message.error {
       color: #b83224;
-      border-color: #efb4ac;
     }
 
     .ad-list {
@@ -50,6 +48,7 @@
     }
 
     .ad-card {
+      align-items: center;
       background: #fff;
       border: 1px solid #dfe7e5;
       border-radius: 16px;
@@ -61,14 +60,14 @@
     }
 
     .ad-card h2 {
-      font-size: 24px;
+      font-size: 23px;
       margin: 0 0 8px;
     }
 
     .ad-meta {
       color: #61727a;
       font-weight: 700;
-      margin: 5px 0;
+      margin: 6px 0;
     }
 
     .status-pill {
@@ -91,29 +90,33 @@
       color: #61727a;
     }
 
-    .edit-button {
-      align-items: center;
-      background: #1b8068;
+    .ad-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .ad-actions a,
+    .ad-actions button {
+      border: 1px solid #dfe7e5;
       border-radius: 8px;
-      color: #fff;
+      background: #fff;
+      color: #064e3b;
+      cursor: pointer;
       display: inline-flex;
+      font: inherit;
       font-weight: 800;
       min-height: 44px;
-      padding: 0 18px;
+      align-items: center;
+      padding: 0 14px;
       text-decoration: none;
     }
 
-    .preview-button {
-      align-items: center;
-      background: #fff;
-      border: 1px solid #dfe7e5;
-      border-radius: 8px;
-      color: #17483d;
-      display: inline-flex;
-      font-weight: 800;
-      min-height: 44px;
-      padding: 0 18px;
-      text-decoration: none;
+    .ad-actions .edit-button {
+      background: #0f7b5f;
+      border-color: #0f7b5f;
+      color: #fff;
     }
 
     .empty-state {
@@ -133,6 +136,7 @@
 
       .account-actions,
       .ad-actions {
+        justify-content: flex-start;
         margin-top: 16px;
       }
     }
@@ -163,7 +167,7 @@
       </div>
     </div>
 
-    <p id="account-message" class="account-message">Laster...</p>
+    <p id="account-message" class="account-message">Henter annonser...</p>
     <section id="ad-list" class="ad-list" aria-live="polite"></section>
   </main>
 
@@ -171,14 +175,9 @@
   <script src="js/supabase-config.js"></script>
   <script>
     const client = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
-    const message = document.getElementById("account-message");
     const adList = document.getElementById("ad-list");
+    const message = document.getElementById("account-message");
     const logoutButton = document.getElementById("logout-button");
-
-    function setMessage(text, isError = false) {
-      message.textContent = text;
-      message.classList.toggle("error", isError);
-    }
 
     function escapeHtml(value) {
       return String(value ?? "")
@@ -192,77 +191,79 @@
     function formatPrice(property) {
       const value = property.price || property.monthly_rent;
       if (!value) return "Pris ikke satt";
-      return `${new Intl.NumberFormat("nb-NO").format(value)} kr`;
+      return `${new Intl.NumberFormat("nb-NO").format(Number(value))} kr`;
     }
 
-    function statusText(property) {
+    function getStatusText(property) {
       if (property.status === "approved" || property.approved === true) return "Godkjent";
       if (property.status === "draft") return "Utkast";
       return "Venter på godkjenning";
     }
 
-    function statusClass(property) {
+    function getStatusClass(property) {
       if (property.status === "approved" || property.approved === true) return "approved";
       if (property.status === "draft") return "draft";
       return "pending";
     }
 
+    function getLocation(property) {
+      return [property.address, property.postal_code, property.city].filter(Boolean).join(", ") || "Adresse ikke satt";
+    }
+
     function renderAds(properties) {
-      if (!properties || properties.length === 0) {
-        adList.innerHTML = `<div class="empty-state">Du har ingen annonser ennå.</div>`;
+      if (!properties || !properties.length) {
+        message.textContent = "Du har ingen annonser ennå.";
+        adList.innerHTML = `<div class="empty-state">Ingen annonser funnet på din bruker.</div>`;
         return;
       }
 
-      const html = properties.map((property) => {
-        const id = encodeURIComponent(property.id);
-        return `
-          <article class="ad-card">
-            <div>
-              <span class="status-pill ${escapeHtml(statusClass(property))}">${escapeHtml(statusText(property))}</span>
-              <h2>${escapeHtml(property.title || "Uten tittel")}</h2>
-              <p class="ad-meta">${escapeHtml(property.address || "Adresse ikke satt")}</p>
-              <p class="ad-meta">${escapeHtml([property.city, property.postal_code].filter(Boolean).join(", "))}</p>
-              <p class="ad-meta">${escapeHtml(formatPrice(property))}</p>
-            </div>
-            <div class="ad-actions">
-              <a class="edit-button" href="rediger-bolig.html?id=${id}">Rediger annonse</a>
-              <a class="preview-button" href="bolig.html?id=${id}">Se annonse</a>
-            </div>
-          </article>
-        `;
-      }).join("");
+      message.textContent = `Fant ${properties.length} annonser. Du kan redigere dem under.`;
+      message.classList.remove("error");
 
-      adList.innerHTML = html;
+      adList.innerHTML = properties.map((property) => `
+        <article class="ad-card">
+          <div>
+            <span class="status-pill ${getStatusClass(property)}">${getStatusText(property)}</span>
+            <h2>${escapeHtml(property.title || "Uten tittel")}</h2>
+            <p class="ad-meta">${escapeHtml(getLocation(property))}</p>
+            <p class="ad-meta">${escapeHtml(formatPrice(property))}</p>
+          </div>
+          <div class="ad-actions">
+            <a class="edit-button" href="rediger-bolig.html?id=${encodeURIComponent(property.id)}">Rediger annonse</a>
+            <a href="bolig.html?id=${encodeURIComponent(property.id)}" target="_blank" rel="noopener">Se annonse</a>
+          </div>
+        </article>
+      `).join("");
     }
 
     async function loadMyAds() {
-      setMessage("Sjekker innlogging...");
+      try {
+        message.textContent = "Sjekker innlogging...";
 
-      const { data: userData, error: userError } = await client.auth.getUser();
-      const user = userData?.user;
+        const { data: sessionData, error: sessionError } = await client.auth.getSession();
+        if (sessionError) throw sessionError;
 
-      if (userError || !user) {
-        console.error(userError);
-        window.location.href = `login.html?redirect=${encodeURIComponent("mine-annonser.html")}`;
-        return;
+        const user = sessionData.session?.user;
+        if (!user) {
+          window.location.href = `login.html?redirect=${encodeURIComponent("mine-annonser.html")}`;
+          return;
+        }
+
+        message.textContent = "Henter dine annonser...";
+
+        const { data, error } = await client
+          .from("properties")
+          .select("id, title, address, city, postal_code, price, monthly_rent, status, approved, created_at, user_id")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+        renderAds(data || []);
+      } catch (error) {
+        console.error("Feil på Mine annonser:", error);
+        message.textContent = `Kunne ikke hente annonsene: ${error.message || error}`;
+        message.classList.add("error");
       }
-
-      setMessage("Henter annonser...");
-
-      const { data, error } = await client
-        .from("properties")
-        .select("id, title, address, city, postal_code, price, monthly_rent, status, approved, user_id, created_at")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error(error);
-        setMessage(`Kunne ikke hente annonsene: ${error.message}`, true);
-        return;
-      }
-
-      setMessage(`Fant ${data.length} annonser. Du kan redigere dem under.`);
-      renderAds(data);
     }
 
     logoutButton.addEventListener("click", async () => {
