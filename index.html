@@ -57,6 +57,18 @@
       white-space: nowrap;
     }
 
+    .login-status {
+      color: #61727a;
+      font-size: 0.92rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .login-status strong {
+      color: #0f7b5f;
+      font-weight: 900;
+    }
+
     .header-logout {
       padding: 0;
       border: 0;
@@ -115,6 +127,7 @@
     </nav>
 
     <div class="header-actions">
+      <span class="login-status" id="login-status" hidden></span>
       <a class="header-link" id="login-link" href="login.html">Logg inn</a>
       <a class="header-link" id="my-ads-link" href="mine-annonser.html">Mine annonser</a>
       <button class="header-link header-logout" id="logout-button" type="button" hidden>Logg ut</button>
@@ -262,17 +275,26 @@
       const loginLink = document.getElementById("login-link");
       const myAdsLink = document.getElementById("my-ads-link");
       const logoutButton = document.getElementById("logout-button");
+      const loginStatus = document.getElementById("login-status");
 
-      if (!loginLink || !myAdsLink || !logoutButton) {
+      if (!loginLink || !myAdsLink || !logoutButton || !loginStatus) {
         return;
       }
 
       const { data } = await headerClient.auth.getSession();
-      const isLoggedIn = Boolean(data.session?.user);
+      const user = data.session?.user;
+      const isLoggedIn = Boolean(user);
 
       loginLink.hidden = isLoggedIn;
       myAdsLink.hidden = !isLoggedIn;
       logoutButton.hidden = !isLoggedIn;
+      loginStatus.hidden = !isLoggedIn;
+
+      if (isLoggedIn) {
+        loginStatus.innerHTML = `Innlogget som: <strong>${user.email}</strong>`;
+      } else {
+        loginStatus.textContent = "";
+      }
     }
 
     document.getElementById("logout-button")?.addEventListener("click", async () => {
