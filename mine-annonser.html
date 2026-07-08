@@ -7,139 +7,21 @@
   <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="css/style.css">
   <style>
-    .account-page {
-      max-width: 1100px;
-      margin: 64px auto;
-      padding: 0 20px;
-    }
-
-    .account-header {
-      align-items: flex-start;
-      display: flex;
-      gap: 16px;
-      justify-content: space-between;
-      margin-bottom: 28px;
-    }
-
-    .account-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-
-    .account-message {
-      background: #fff;
-      border: 1px solid #dfe7e5;
-      border-radius: 16px;
-      color: #08745f;
-      font-weight: 800;
-      margin: 18px 0;
-      padding: 18px;
-    }
-
-    .account-message.error {
-      color: #b83224;
-    }
-
-    .ad-list {
-      display: grid;
-      gap: 16px;
-      margin-top: 18px;
-    }
-
-    .ad-card {
-      align-items: center;
-      background: #fff;
-      border: 1px solid #dfe7e5;
-      border-radius: 16px;
-      box-shadow: 0 14px 35px rgba(26, 46, 51, 0.07);
-      display: grid;
-      gap: 18px;
-      grid-template-columns: 1fr auto;
-      padding: 22px;
-    }
-
-    .ad-card h2 {
-      font-size: 23px;
-      margin: 0 0 8px;
-    }
-
-    .ad-meta {
-      color: #61727a;
-      font-weight: 700;
-      margin: 6px 0;
-    }
-
-    .status-pill {
-      background: #eef7f4;
-      border-radius: 999px;
-      color: #1b8068;
-      display: inline-flex;
-      font-weight: 800;
-      margin-bottom: 10px;
-      padding: 6px 10px;
-    }
-
-    .status-pill.pending {
-      background: #fff6df;
-      color: #b26b00;
-    }
-
-    .status-pill.draft {
-      background: #eef1f2;
-      color: #61727a;
-    }
-
-    .ad-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: flex-end;
-    }
-
-    .ad-actions a,
-    .ad-actions button {
-      border: 1px solid #dfe7e5;
-      border-radius: 8px;
-      background: #fff;
-      color: #064e3b;
-      cursor: pointer;
-      display: inline-flex;
-      font: inherit;
-      font-weight: 800;
-      min-height: 44px;
-      align-items: center;
-      padding: 0 14px;
-      text-decoration: none;
-    }
-
-    .ad-actions .edit-button {
-      background: #0f7b5f;
-      border-color: #0f7b5f;
-      color: #fff;
-    }
-
-    .empty-state {
-      background: #fff;
-      border: 1px solid #dfe7e5;
-      border-radius: 16px;
-      color: #61727a;
-      font-weight: 700;
-      padding: 28px;
-    }
-
-    @media (max-width: 760px) {
-      .account-header,
-      .ad-card {
-        display: block;
-      }
-
-      .account-actions,
-      .ad-actions {
-        justify-content: flex-start;
-        margin-top: 16px;
-      }
-    }
+    .account-page { max-width: 1100px; margin: 64px auto; padding: 0 20px; }
+    .account-header { align-items: flex-start; display: flex; gap: 16px; justify-content: space-between; margin-bottom: 28px; }
+    .account-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+    #account-message { background:#fff; border:1px solid #dfe7e5; border-radius:16px; color:#08745f; font-weight:800; margin:18px 0; padding:18px; }
+    #account-message.error { color:#b83224; }
+    #ads-box { display:block !important; margin-top:18px; }
+    .my-ad-card { display:grid !important; grid-template-columns:1fr auto; align-items:center; gap:18px; background:#fff; border:1px solid #dfe7e5; border-radius:16px; box-shadow:0 14px 35px rgba(26,46,51,.07); padding:22px; margin:0 0 16px 0; }
+    .my-ad-card h2 { font-size:23px; margin:0 0 8px; color:#15252b; }
+    .my-ad-card p { margin:6px 0; color:#61727a; font-weight:700; }
+    .status-pill { display:inline-flex; border-radius:999px; padding:6px 10px; margin-bottom:10px; font-weight:800; background:#eef7f4; color:#1b8068; }
+    .status-pill.pending { background:#fff6df; color:#b26b00; }
+    .my-ad-actions { display:flex; flex-wrap:wrap; gap:10px; justify-content:flex-end; }
+    .my-ad-actions a { min-height:44px; display:inline-flex; align-items:center; padding:0 14px; border-radius:8px; border:1px solid #dfe7e5; color:#064e3b; background:#fff; font-weight:800; text-decoration:none; }
+    .my-ad-actions a.edit { background:#0f7b5f; border-color:#0f7b5f; color:#fff; }
+    @media (max-width:760px){ .account-header,.my-ad-card{display:block !important}.account-actions,.my-ad-actions{justify-content:flex-start;margin-top:16px} }
   </style>
 </head>
 <body>
@@ -167,16 +49,16 @@
       </div>
     </div>
 
-    <p id="account-message" class="account-message">Henter annonser...</p>
-    <section id="ad-list" class="ad-list" aria-live="polite"></section>
+    <div id="account-message">Henter annonser...</div>
+    <div id="ads-box"></div>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase-config.js"></script>
   <script>
     const client = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
-    const adList = document.getElementById("ad-list");
     const message = document.getElementById("account-message");
+    const adsBox = document.getElementById("ads-box");
     const logoutButton = document.getElementById("logout-button");
 
     function escapeHtml(value) {
@@ -194,51 +76,50 @@
       return `${new Intl.NumberFormat("nb-NO").format(Number(value))} kr`;
     }
 
-    function getStatusText(property) {
-      if (property.status === "approved" || property.approved === true) return "Godkjent";
+    function statusText(property) {
+      if (property.approved === true || property.status === "approved") return "Godkjent";
       if (property.status === "draft") return "Utkast";
       return "Venter på godkjenning";
     }
 
-    function getStatusClass(property) {
-      if (property.status === "approved" || property.approved === true) return "approved";
-      if (property.status === "draft") return "draft";
-      return "pending";
+    function statusClass(property) {
+      return property.approved === true || property.status === "approved" ? "" : "pending";
     }
 
-    function getLocation(property) {
+    function locationText(property) {
       return [property.address, property.postal_code, property.city].filter(Boolean).join(", ") || "Adresse ikke satt";
     }
 
-    function renderAds(properties) {
-      if (!properties || !properties.length) {
-        message.textContent = "Du har ingen annonser ennå.";
-        adList.innerHTML = `<div class="empty-state">Ingen annonser funnet på din bruker.</div>`;
+    function drawAds(ads) {
+      message.textContent = `Fant ${ads.length} annonser.`;
+
+      if (!ads.length) {
+        adsBox.innerHTML = `<div class="my-ad-card"><div><h2>Ingen annonser funnet</h2><p>Denne brukeren har ingen annonser ennå.</p></div></div>`;
         return;
       }
 
-      message.textContent = `Fant ${properties.length} annonser. Du kan redigere dem under.`;
-      message.classList.remove("error");
-
-      adList.innerHTML = properties.map((property) => `
-        <article class="ad-card">
-          <div>
-            <span class="status-pill ${getStatusClass(property)}">${getStatusText(property)}</span>
-            <h2>${escapeHtml(property.title || "Uten tittel")}</h2>
-            <p class="ad-meta">${escapeHtml(getLocation(property))}</p>
-            <p class="ad-meta">${escapeHtml(formatPrice(property))}</p>
-          </div>
-          <div class="ad-actions">
-            <a class="edit-button" href="rediger-bolig.html?id=${encodeURIComponent(property.id)}">Rediger annonse</a>
-            <a href="bolig.html?id=${encodeURIComponent(property.id)}" target="_blank" rel="noopener">Se annonse</a>
-          </div>
-        </article>
-      `).join("");
+      adsBox.innerHTML = ads.map((ad) => {
+        const id = encodeURIComponent(ad.id);
+        return `
+          <div class="my-ad-card">
+            <div>
+              <span class="status-pill ${statusClass(ad)}">${statusText(ad)}</span>
+              <h2>${escapeHtml(ad.title || "Uten tittel")}</h2>
+              <p>${escapeHtml(locationText(ad))}</p>
+              <p>${escapeHtml(formatPrice(ad))}</p>
+            </div>
+            <div class="my-ad-actions">
+              <a class="edit" href="rediger-bolig.html?id=${id}">Rediger annonse</a>
+              <a href="bolig.html?id=${id}">Se annonse</a>
+            </div>
+          </div>`;
+      }).join("");
     }
 
     async function loadMyAds() {
       try {
         message.textContent = "Sjekker innlogging...";
+        adsBox.innerHTML = "";
 
         const { data: sessionData, error: sessionError } = await client.auth.getSession();
         if (sessionError) throw sessionError;
@@ -249,20 +130,20 @@
           return;
         }
 
-        message.textContent = "Henter dine annonser...";
-
+        message.textContent = "Henter annonser...";
         const { data, error } = await client
           .from("properties")
-          .select("id, title, address, city, postal_code, price, monthly_rent, status, approved, created_at, user_id")
+          .select("id,title,address,city,postal_code,price,monthly_rent,status,approved,created_at,user_id")
           .eq("user_id", user.id)
           .order("created_at", { ascending: false });
 
         if (error) throw error;
-        renderAds(data || []);
+        drawAds(data || []);
       } catch (error) {
-        console.error("Feil på Mine annonser:", error);
+        console.error("Mine annonser-feil:", error);
         message.textContent = `Kunne ikke hente annonsene: ${error.message || error}`;
         message.classList.add("error");
+        adsBox.innerHTML = "";
       }
     }
 
