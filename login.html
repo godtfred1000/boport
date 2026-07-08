@@ -149,14 +149,20 @@
         return;
       }
 
-      const { error } = await client.auth.signUp({ email, password });
+      const { error } = await client.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: "https://godtfred1000.github.io/boport/auth-callback.html"
+        }
+      });
 
       if (error) {
         setMessage(`Kunne ikke opprette konto: ${error.message}`, "error");
         return;
       }
 
-      setMessage("Konto er opprettet. Hvis Supabase ber om e-postbekreftelse, sjekk innboksen.", "success");
+      setMessage("Konto er opprettet. Sjekk e-posten din og trykk på bekreftelseslenken.", "success");
     });
 
     redirectIfLoggedIn();
