@@ -251,6 +251,7 @@
       <div class="edit-actions">
         <button class="edit-button secondary" id="draft-button" type="button">Lagre som utkast</button>
         <button class="edit-button secondary" id="preview-button" type="button">Forhåndsvis annonse</button>
+        <button class="edit-button danger" id="delete-property-button" type="button">Slett annonse</button>
         <button class="edit-button" id="save-button" type="button">Lagre endringer</button>
       </div>
     </div>
@@ -363,6 +364,7 @@
     const saveButton = document.getElementById("save-button");
     const draftButton = document.getElementById("draft-button");
     const previewButton = document.getElementById("preview-button");
+    const deletePropertyButton = document.getElementById("delete-property-button");
     const newImagesInput = document.getElementById("new-images");
 
     let images = [];
@@ -615,6 +617,82 @@
       }
     }
 
+    async function deleteProperty() {
+      if (!propertyId) {
+        setMessage("Kan ikke slette: mangler annonse-id i adressen.", "error");
+        return;
+      }
+
+      const firstConfirm = window.confirm("Er du sikker på at du vil slette denne annonsen?");
+      if (!firstConfirm) {
+        return;
+      }
+
+      const secondConfirm = window.confirm("Dette kan ikke angres. Annonsen og bildene blir slettet. Vil du fortsette?");
+      if (!secondConfirm) {
+        return;
+      }
+
+      setMessage("Sletter annonse...", "");
+      saveButton.disabled = true;
+      draftButton.disabled = true;
+      deletePropertyButton.disabled = true;
+
+      try {
+        const { data: imageRows, error: imageFetchError } = await client
+          .from("property_images")
+          .select("id, image_url")
+          .eq("property_id", propertyId);
+
+        if (imageFetchError) {
+          throw imageFetchError;
+        }
+
+        const storagePaths = (imageRows || [])
+          .map((image) => getStoragePathFromPublicUrl(image.image_url))
+          .filter(Boolean);
+
+        if ((imageRows || []).length) {
+          const { error: imageDeleteError } = await client
+            .from("property_images")
+            .delete()
+            .eq("property_id", propertyId);
+
+          if (imageDeleteError) {
+            throw imageDeleteError;
+          }
+        }
+
+        if (storagePaths.length) {
+          const { error: storageDeleteError } = await client.storage
+            .from("property-images")
+            .remove(storagePaths);
+
+          if (storageDeleteError) {
+            console.warn("Bildene ble ikke slettet fra Storage:", storageDeleteError);
+          }
+        }
+
+        const { error: propertyDeleteError } = await client
+          .from("properties")
+          .delete()
+          .eq("id", propertyId);
+
+        if (propertyDeleteError) {
+          throw propertyDeleteError;
+        }
+
+        hasUnsavedChanges = false;
+        window.location.href = "mine-annonser.html";
+      } catch (error) {
+        setMessage(`Feil ved sletting: ${getErrorMessage(error)}`, "error");
+        console.error(error);
+        saveButton.disabled = false;
+        draftButton.disabled = false;
+        deletePropertyButton.disabled = false;
+      }
+    }
+
     imageList.addEventListener("click", (event) => {
       const button = event.target.closest("button[data-action]");
       if (!button) {
@@ -705,6 +783,7 @@
     form.addEventListener("change", markUnsaved);
     saveButton.addEventListener("click", () => saveProperty());
     draftButton.addEventListener("click", () => saveProperty("draft"));
+    deletePropertyButton.addEventListener("click", deleteProperty);
     previewButton.addEventListener("click", () => {
       if (propertyId) {
         window.open(`bolig.html?id=${encodeURIComponent(propertyId)}`, "_blank");
