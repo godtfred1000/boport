@@ -21,20 +21,35 @@
       margin-bottom: 28px;
     }
 
-    .account-actions {
+    .account-actions,
+    .ad-actions {
       display: flex;
       flex-wrap: wrap;
       gap: 12px;
     }
 
+    .account-message {
+      background: #fff;
+      border: 1px solid #dfe7e5;
+      border-radius: 14px;
+      color: #1b8068;
+      font-weight: 800;
+      margin: 0 0 18px;
+      padding: 16px 18px;
+    }
+
+    .account-message.error {
+      color: #b83224;
+      border-color: #efb4ac;
+    }
+
     .ad-list {
       display: grid;
       gap: 16px;
-      margin-top: 22px;
+      margin-top: 18px;
     }
 
     .ad-card {
-      align-items: center;
       background: #fff;
       border: 1px solid #dfe7e5;
       border-radius: 16px;
@@ -76,35 +91,38 @@
       color: #61727a;
     }
 
-    .ad-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: flex-end;
+    .edit-button {
+      align-items: center;
+      background: #1b8068;
+      border-radius: 8px;
+      color: #fff;
+      display: inline-flex;
+      font-weight: 800;
+      min-height: 44px;
+      padding: 0 18px;
+      text-decoration: none;
     }
 
-    .empty-state,
-    .account-message {
+    .preview-button {
+      align-items: center;
+      background: #fff;
+      border: 1px solid #dfe7e5;
+      border-radius: 8px;
+      color: #17483d;
+      display: inline-flex;
+      font-weight: 800;
+      min-height: 44px;
+      padding: 0 18px;
+      text-decoration: none;
+    }
+
+    .empty-state {
       background: #fff;
       border: 1px solid #dfe7e5;
       border-radius: 16px;
       color: #61727a;
       font-weight: 700;
-      padding: 18px;
-    }
-
-    .account-message {
-      margin: 0 0 18px;
-    }
-
-    .account-message.error {
-      color: #b83224;
-      border-color: #f0b6ae;
-    }
-
-    .account-message.success {
-      color: #1b8068;
-      border-color: #b9ddd3;
+      padding: 28px;
     }
 
     @media (max-width: 760px) {
@@ -113,8 +131,8 @@
         display: block;
       }
 
+      .account-actions,
       .ad-actions {
-        justify-content: flex-start;
         margin-top: 16px;
       }
     }
@@ -145,124 +163,114 @@
       </div>
     </div>
 
-    <p id="account-message" class="account-message">Starter...</p>
+    <p id="account-message" class="account-message">Laster...</p>
     <section id="ad-list" class="ad-list" aria-live="polite"></section>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase-config.js"></script>
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const message = document.getElementById("account-message");
-      const adList = document.getElementById("ad-list");
-      const logoutButton = document.getElementById("logout-button");
+    const client = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
+    const message = document.getElementById("account-message");
+    const adList = document.getElementById("ad-list");
+    const logoutButton = document.getElementById("logout-button");
 
-      function setMessage(text, type = "") {
-        message.textContent = text;
-        message.className = `account-message ${type}`.trim();
+    function setMessage(text, isError = false) {
+      message.textContent = text;
+      message.classList.toggle("error", isError);
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function formatPrice(property) {
+      const value = property.price || property.monthly_rent;
+      if (!value) return "Pris ikke satt";
+      return `${new Intl.NumberFormat("nb-NO").format(value)} kr`;
+    }
+
+    function statusText(property) {
+      if (property.status === "approved" || property.approved === true) return "Godkjent";
+      if (property.status === "draft") return "Utkast";
+      return "Venter på godkjenning";
+    }
+
+    function statusClass(property) {
+      if (property.status === "approved" || property.approved === true) return "approved";
+      if (property.status === "draft") return "draft";
+      return "pending";
+    }
+
+    function renderAds(properties) {
+      if (!properties || properties.length === 0) {
+        adList.innerHTML = `<div class="empty-state">Du har ingen annonser ennå.</div>`;
+        return;
       }
 
-      function escapeHtml(value) {
-        return String(value ?? "")
-          .replaceAll("&", "&amp;")
-          .replaceAll("<", "&lt;")
-          .replaceAll(">", "&gt;")
-          .replaceAll('"', "&quot;")
-          .replaceAll("'", "&#039;");
-      }
-
-      function formatPrice(property) {
-        const value = property.price || property.monthly_rent;
-        if (!value) return "Pris ikke satt";
-        return `${new Intl.NumberFormat("nb-NO").format(value)} kr`;
-      }
-
-      function getStatusText(property) {
-        if (property.status === "approved" || property.approved === true) return "Godkjent";
-        if (property.status === "draft") return "Utkast";
-        return "Venter på godkjenning";
-      }
-
-      function getStatusClass(property) {
-        if (property.status === "draft") return "draft";
-        if (property.status === "approved" || property.approved === true) return "approved";
-        return "pending";
-      }
-
-      function renderAds(properties) {
-        if (!properties || !properties.length) {
-          adList.innerHTML = `<div class="empty-state">Du har ingen annonser ennå.</div>`;
-          return;
-        }
-
-        adList.innerHTML = properties.map((property) => `
+      const html = properties.map((property) => {
+        const id = encodeURIComponent(property.id);
+        return `
           <article class="ad-card">
             <div>
-              <span class="status-pill ${escapeHtml(getStatusClass(property))}">${escapeHtml(getStatusText(property))}</span>
+              <span class="status-pill ${escapeHtml(statusClass(property))}">${escapeHtml(statusText(property))}</span>
               <h2>${escapeHtml(property.title || "Uten tittel")}</h2>
-              <p class="ad-meta">${escapeHtml([property.city, property.postal_code].filter(Boolean).join(", ") || property.address || "Adresse ikke satt")}</p>
+              <p class="ad-meta">${escapeHtml(property.address || "Adresse ikke satt")}</p>
+              <p class="ad-meta">${escapeHtml([property.city, property.postal_code].filter(Boolean).join(", "))}</p>
               <p class="ad-meta">${escapeHtml(formatPrice(property))}</p>
             </div>
             <div class="ad-actions">
-              <a class="secondary-link" href="rediger-bolig.html?id=${encodeURIComponent(property.id)}">Rediger</a>
-              <a class="secondary-link" href="bolig.html?id=${encodeURIComponent(property.id)}" target="_blank" rel="noopener">Forhåndsvis</a>
+              <a class="edit-button" href="rediger-bolig.html?id=${id}">Rediger annonse</a>
+              <a class="preview-button" href="bolig.html?id=${id}">Se annonse</a>
             </div>
           </article>
-        `).join("");
+        `;
+      }).join("");
+
+      adList.innerHTML = html;
+    }
+
+    async function loadMyAds() {
+      setMessage("Sjekker innlogging...");
+
+      const { data: userData, error: userError } = await client.auth.getUser();
+      const user = userData?.user;
+
+      if (userError || !user) {
+        console.error(userError);
+        window.location.href = `login.html?redirect=${encodeURIComponent("mine-annonser.html")}`;
+        return;
       }
 
-      async function loadMyAds() {
-        try {
-          if (!window.SUPABASE_URL || !window.SUPABASE_KEY) {
-            setMessage("Mangler Supabase-oppsett. Sjekk js/supabase-config.js", "error");
-            return;
-          }
+      setMessage("Henter annonser...");
 
-          const client = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
-          setMessage("Sjekker innlogging...");
+      const { data, error } = await client
+        .from("properties")
+        .select("id, title, address, city, postal_code, price, monthly_rent, status, approved, user_id, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
 
-          const { data: userData, error: userError } = await client.auth.getUser();
-          const user = userData?.user;
-
-          if (userError || !user) {
-            console.error("Innloggingsfeil:", userError);
-            window.location.href = `login.html?redirect=${encodeURIComponent("mine-annonser.html")}`;
-            return;
-          }
-
-          setMessage(`Innlogget som ${user.email || user.id}. Henter annonser...`);
-
-          const { data, error } = await client
-            .from("properties")
-            .select("id, title, address, city, postal_code, price, monthly_rent, status, approved, user_id, created_at")
-            .eq("user_id", user.id)
-            .order("created_at", { ascending: false });
-
-          if (error) {
-            console.error("Kunne ikke hente annonser:", error);
-            setMessage(`Kunne ikke hente annonsene: ${error.message}`, "error");
-            return;
-          }
-
-          console.log("Innlogget bruker:", user.id);
-          console.log("Mine annonser:", data);
-
-          setMessage(`Fant ${data?.length || 0} annonser.`, "success");
-          renderAds(data || []);
-        } catch (error) {
-          console.error("Uventet feil på Mine annonser:", error);
-          setMessage(`Uventet feil: ${error.message}`, "error");
-        }
+      if (error) {
+        console.error(error);
+        setMessage(`Kunne ikke hente annonsene: ${error.message}`, true);
+        return;
       }
 
-      logoutButton.addEventListener("click", async () => {
-        const client = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
-        await client.auth.signOut();
-        window.location.href = "login.html";
-      });
+      setMessage(`Fant ${data.length} annonser. Du kan redigere dem under.`);
+      renderAds(data);
+    }
 
-      loadMyAds();
+    logoutButton.addEventListener("click", async () => {
+      await client.auth.signOut();
+      window.location.href = "login.html";
     });
+
+    loadMyAds();
   </script>
 </body>
 </html>
