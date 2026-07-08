@@ -449,11 +449,21 @@
       submitButton.textContent = "Sender...";
       showMessage("Sender inn annonse...");
 
+      const { data: userData, error: userError } = await client.auth.getUser();
+      const user = userData?.user;
+
+      if (userError || !user) {
+        console.error(userError || "Ingen innlogget bruker");
+        showMessage("Du må være logget inn før du kan sende inn annonse.", true);
+        resetSubmitButton();
+        return;
+      }
+
       const formData = new FormData(form);
       const property = Object.fromEntries(formData.entries());
       property.id = crypto.randomUUID();
       property.status = "pending";
-      property.user_id = null;
+      property.user_id = user.id;
 
       ["price", "monthly_rent", "size_m2", "bedrooms"].forEach((field) => {
         property[field] = property[field] ? Number(property[field]) : null;
