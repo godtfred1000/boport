@@ -639,20 +639,14 @@
       deletePropertyButton.disabled = true;
 
       try {
-        // Slett bare selve annonsen. Database-regelen ON DELETE CASCADE sletter bildekoblingene.
-        // Storage-bildefiler kan eventuelt ryddes senere, men skal ikke stoppe sletting av annonsen.
-        const { data, error } = await client
-          .from("properties")
-          .delete()
-          .eq("id", propertyId)
-          .select("id");
+        // Slett via Supabase-funksjon. Funksjonen sjekker at innlogget bruker eier annonsen,
+        // sletter bildekoblinger først, og sletter deretter annonsen.
+        const { error } = await client.rpc("delete_my_property", {
+          p_property_id: propertyId
+        });
 
         if (error) {
           throw error;
-        }
-
-        if (!data || data.length === 0) {
-          throw new Error("Ingen annonse ble slettet. Sjekk at du er logget inn og eier annonsen.");
         }
 
         hasUnsavedChanges = false;
