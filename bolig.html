@@ -665,6 +665,18 @@
         .replaceAll("'", "&#039;");
     }
 
+    function formatPlaceName(value) {
+      const text = String(value || "").trim();
+
+      if (!text) {
+        return "";
+      }
+
+      return text
+        .toLocaleLowerCase("nb-NO")
+        .replace(/(^|[\s-])\p{L}/gu, (match) => match.toLocaleUpperCase("nb-NO"));
+    }
+
     function formatPrice(property) {
       const formatter = new Intl.NumberFormat("nb-NO");
 
@@ -684,11 +696,11 @@
     }
 
     function getListingLabel(property) {
-      return property.listing_type === "rent" ? "Leie" : "Salg";
+      return property.listing_type === "rent" ? "Til leie" : "Til salgs";
     }
 
     function getLocation(property) {
-      return [property.city, property.postal_code].filter(Boolean).join(", ") || property.address || "Norge";
+      return [formatPlaceName(property.city), property.postal_code].filter(Boolean).join(", ") || property.address || "Norge";
     }
 
     function getMapQuery(property) {
@@ -973,13 +985,13 @@
           <div class="keyinfo-layout">
             <dl class="facts-grid">
               ${fact(priceHeading(property), formatPrice(property))}
-              ${fact("Type", getListingLabel(property))}
+              ${fact("Type annonse", getListingLabel(property))}
               ${fact("Boligtype", property.property_type)}
               ${fact("Areal", property.size_m2 ? `${property.size_m2} m²` : "")}
               ${fact("Soverom", property.bedrooms)}
               ${fact("Adresse", property.address)}
               ${fact("Postnummer", property.postal_code)}
-              ${fact("By/sted", property.city)}
+              ${fact("By/sted", formatPlaceName(property.city))}
               ${fact("Kontaktperson", property.contact_name)}
             </dl>
 
