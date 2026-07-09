@@ -229,10 +229,60 @@
       white-space: pre-wrap;
     }
 
+    .keyinfo-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+      gap: 22px;
+      align-items: start;
+    }
+
     .facts-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 14px;
+    }
+
+    .side-card {
+      padding: 28px;
+      background: #20201f;
+      color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 24px 70px rgba(37, 47, 50, 0.14);
+    }
+
+    .side-card h3 {
+      margin: 0 0 10px;
+      color: #fff;
+      font-size: 1.55rem;
+    }
+
+    .side-card p {
+      margin: 0 0 18px;
+      color: rgba(255, 255, 255, 0.86);
+      font-weight: 700;
+      line-height: 1.55;
+    }
+
+    .side-card .contact-button {
+      width: 100%;
+      margin-top: 10px;
+      box-sizing: border-box;
+    }
+
+    .side-card .contact-button.secondary {
+      color: #fff;
+      background: transparent;
+      border-color: rgba(255, 255, 255, 0.72);
+    }
+
+    .side-card-note {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.18);
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 0.92rem;
+      font-weight: 700;
+      line-height: 1.5;
     }
 
     .fact-item {
@@ -468,6 +518,10 @@
         font-size: 1.18rem;
       }
 
+      .keyinfo-layout {
+        grid-template-columns: 1fr;
+      }
+
       .facts-grid,
       .contact-layout {
         grid-template-columns: 1fr 1fr;
@@ -540,6 +594,7 @@
         padding: 24px;
       }
 
+      .keyinfo-layout,
       .facts-grid,
       .contact-layout {
         grid-template-columns: 1fr;
@@ -770,6 +825,24 @@
       `;
     }
 
+    function contactEmailHref(property) {
+      if (!property.contact_email) {
+        return "";
+      }
+
+      const subject = encodeURIComponent(`Interesse for ${property.title || "bolig på Boport"}`);
+      return `mailto:${property.contact_email}?subject=${subject}`;
+    }
+
+    function contactPhoneHref(property) {
+      if (!property.contact_phone) {
+        return "";
+      }
+
+      const phone = String(property.contact_phone).replace(/[^0-9+]/g, "");
+      return phone ? `tel:${phone}` : "";
+    }
+
     function buildGallery(images) {
       const slides = images.map((url, index) => `
         <figure class="gallery-slide" id="bilde-${index}">
@@ -897,16 +970,28 @@
         <section class="showcase-section" id="boliginfo">
           <p class="section-eyebrow">Boliginfo</p>
           <h2>Nøkkelinformasjon</h2>
-          <dl class="facts-grid">
-            ${fact(priceHeading(property), formatPrice(property))}
-            ${fact("Type", getListingLabel(property))}
-            ${fact("Boligtype", property.property_type)}
-            ${fact("Areal", property.size_m2 ? `${property.size_m2} m²` : "")}
-            ${fact("Soverom", property.bedrooms)}
-            ${fact("Adresse", property.address)}
-            ${fact("Sted", location)}
-            ${fact("Postnummer", property.postal_code)}
-          </dl>
+          <div class="keyinfo-layout">
+            <dl class="facts-grid">
+              ${fact(priceHeading(property), formatPrice(property))}
+              ${fact("Type", getListingLabel(property))}
+              ${fact("Boligtype", property.property_type)}
+              ${fact("Areal", property.size_m2 ? `${property.size_m2} m²` : "")}
+              ${fact("Soverom", property.bedrooms)}
+              ${fact("Adresse", property.address)}
+              ${fact("Postnummer", property.postal_code)}
+              ${fact("By/sted", property.city)}
+              ${fact("Kontaktperson", property.contact_name)}
+            </dl>
+
+            <aside class="side-card" aria-label="Kontakt annonsør">
+              <h3>Interessert i boligen?</h3>
+              <p>Kontakt annonsøren direkte for spørsmål, visning eller mer informasjon.</p>
+              ${property.contact_email ? `<a class="contact-button primary" href="${escapeHtml(contactEmailHref(property))}">Send e-post</a>` : ""}
+              ${property.contact_phone ? `<a class="contact-button secondary" href="${escapeHtml(contactPhoneHref(property))}">Ring annonsør</a>` : ""}
+              <a class="contact-button secondary" href="#kart">Se kart</a>
+              <div class="side-card-note">Boport formidler kontakten direkte mellom annonsør og interessent.</div>
+            </aside>
+          </div>
         </section>
 
         <section class="showcase-section" id="bilder">
