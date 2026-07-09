@@ -249,13 +249,13 @@
         </label>
 
         <label>
-          By/sted
-          <input name="city" required placeholder="Oslo">
+          Postnummer
+          <input name="postal_code" required placeholder="0000" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="postal-code">
         </label>
 
         <label>
-          Postnummer
-          <input name="postal_code" required placeholder="0000">
+          By/sted
+          <input name="city" required placeholder="Fylles automatisk">
         </label>
 
         <label>
@@ -327,6 +327,63 @@
     const clearImagesButton = document.getElementById("clear-images");
     const imagePreviewList = document.getElementById("image-preview-list");
     let selectedImages = [];
+
+    function getPostalCodeInputs() {
+      return {
+        postalCodeInput: form.elements["postal_code"],
+        cityInput: form.elements["city"]
+      };
+    }
+
+    function normalizePostalCode(value) {
+      return String(value || "").replace(/\D/g, "").slice(0, 4);
+    }
+
+    async function fillCityFromPostalCode() {
+      const { postalCodeInput, cityInput } = getPostalCodeInputs();
+
+      if (!postalCodeInput || !cityInput) {
+        return;
+      }
+
+      const postalCode = normalizePostalCode(postalCodeInput.value);
+      postalCodeInput.value = postalCode;
+
+      if (postalCode.length !== 4) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`https://fraktguide.bring.no/fraktguide/api/postalCode.json?country=no&pnr=${encodeURIComponent(postalCode)}&clientUrl=boport.no`);
+        const data = await response.json();
+        const city = data?.result;
+
+        if (city) {
+          cityInput.value = city;
+        }
+      } catch (error) {
+        console.error("Kunne ikke hente by/sted fra postnummer", error);
+      }
+    }
+
+    function setupPostalCodeAutofill() {
+      const { postalCodeInput } = getPostalCodeInputs();
+
+      if (!postalCodeInput) {
+        return;
+      }
+
+      postalCodeInput.addEventListener("input", () => {
+        postalCodeInput.value = normalizePostalCode(postalCodeInput.value);
+
+        if (postalCodeInput.value.length === 4) {
+          fillCityFromPostalCode();
+        }
+      });
+
+      postalCodeInput.addEventListener("blur", fillCityFromPostalCode);
+    }
+
 
     function showMessage(text, isError = false) {
       message.textContent = text;
@@ -441,6 +498,8 @@
       renderImagePreviewList();
       showMessage("Bildene er fjernet. Du kan sende inn uten bilde.");
     });
+
+    setupPostalCodeAutofill();
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
