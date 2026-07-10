@@ -629,7 +629,203 @@
       .property-unit-section .content-panel {
         border-left: 6px solid #c98b37;
       }
-    </style>
+  
+    /* Fullskjermgalleri */
+    .gallery-slide {
+      cursor: zoom-in;
+    }
+
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: none;
+      background: rgba(12, 13, 14, 0.97);
+      color: #fff;
+    }
+
+    .lightbox.open {
+      display: grid;
+      grid-template-columns: 220px minmax(0, 1fr);
+      grid-template-rows: 72px minmax(0, 1fr);
+    }
+
+    .lightbox-topbar {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 0 22px;
+      background: #1a1b1d;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .lightbox-title {
+      margin: 0;
+      font-size: 1.15rem;
+      font-weight: 900;
+    }
+
+    .lightbox-counter {
+      color: rgba(255, 255, 255, 0.78);
+      font-weight: 800;
+    }
+
+    .lightbox-close {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 46px;
+      height: 46px;
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+      border: 0;
+      border-radius: 50%;
+      font-size: 2rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .lightbox-thumbs {
+      grid-column: 1;
+      grid-row: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+      padding: 16px;
+      background: #18191b;
+      border-right: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .lightbox-thumb {
+      flex: 0 0 auto;
+      padding: 0;
+      overflow: hidden;
+      background: transparent;
+      border: 3px solid transparent;
+      border-radius: 7px;
+      cursor: pointer;
+    }
+
+    .lightbox-thumb.active {
+      border-color: #c98b37;
+    }
+
+    .lightbox-thumb img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+    }
+
+    .lightbox-stage {
+      position: relative;
+      grid-column: 2;
+      grid-row: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 0;
+      min-height: 0;
+      padding: 28px 80px;
+      overflow: hidden;
+    }
+
+    .lightbox-image {
+      display: block;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      user-select: none;
+    }
+
+    .lightbox-arrow {
+      position: absolute;
+      top: 50%;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 58px;
+      height: 58px;
+      transform: translateY(-50%);
+      color: #fff;
+      background: rgba(32, 32, 31, 0.74);
+      border: 2px solid rgba(255, 255, 255, 0.78);
+      border-radius: 50%;
+      font-size: 2.25rem;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .lightbox-arrow:hover,
+    .lightbox-close:hover {
+      background: #c98b37;
+    }
+
+    .lightbox-arrow.prev {
+      left: 18px;
+    }
+
+    .lightbox-arrow.next {
+      right: 18px;
+    }
+
+    body.lightbox-open {
+      overflow: hidden;
+    }
+
+    @media (max-width: 820px) {
+      .lightbox.open {
+        grid-template-columns: 1fr;
+        grid-template-rows: 64px minmax(0, 1fr) 104px;
+      }
+
+      .lightbox-topbar {
+        grid-column: 1;
+        grid-row: 1;
+        padding: 0 14px;
+      }
+
+      .lightbox-stage {
+        grid-column: 1;
+        grid-row: 2;
+        padding: 18px 54px;
+      }
+
+      .lightbox-thumbs {
+        grid-column: 1;
+        grid-row: 3;
+        flex-direction: row;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 10px;
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        border-right: 0;
+      }
+
+      .lightbox-thumb {
+        flex-basis: 92px;
+      }
+
+      .lightbox-arrow {
+        width: 46px;
+        height: 46px;
+        font-size: 1.8rem;
+      }
+
+      .lightbox-arrow.prev {
+        left: 8px;
+      }
+
+      .lightbox-arrow.next {
+        right: 8px;
+      }
+    }
+
+  </style>
 </head>
 <body class="showcase-page">
   <header class="listing-nav">
@@ -889,45 +1085,195 @@
         return;
       }
 
+      const galleryShell = track.closest(".gallery-shell");
       const slides = Array.from(track.querySelectorAll(".gallery-slide"));
-      const thumbs = Array.from(document.querySelectorAll(".gallery-thumb"));
-      const prev = document.querySelector(".gallery-arrow.prev");
-      const next = document.querySelector(".gallery-arrow.next");
+      const thumbs = Array.from(galleryShell?.querySelectorAll(".gallery-thumb") || []);
+      const prev = galleryShell?.querySelector(".gallery-arrow.prev");
+      const next = galleryShell?.querySelector(".gallery-arrow.next");
+      let activeIndex = 0;
+      let scrollFrame = null;
 
-      function goToSlide(index) {
-        const slide = slides[index];
+      function clampIndex(index) {
+        return Math.max(0, Math.min(Number(index) || 0, slides.length - 1));
+      }
+
+      function setActiveThumb(index) {
+        activeIndex = clampIndex(index);
+
+        thumbs.forEach((thumb, thumbIndex) => {
+          const isActive = thumbIndex === activeIndex;
+          thumb.classList.toggle("active", isActive);
+          thumb.setAttribute("aria-current", isActive ? "true" : "false");
+        });
+
+        const activeThumb = thumbs[activeIndex];
+        if (activeThumb) {
+          activeThumb.scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+            inline: "nearest"
+          });
+        }
+      }
+
+      function goToSlide(index, behavior = "smooth") {
+        const targetIndex = clampIndex(index);
+        const slide = slides[targetIndex];
 
         if (!slide) {
           return;
         }
 
-        track.scrollTo({ left: index * track.clientWidth, behavior: "smooth" });
-      }
+        setActiveThumb(targetIndex);
 
-      function currentIndex() {
-        return Math.round(track.scrollLeft / Math.max(track.clientWidth, 1));
-      }
-
-      function updateThumbs() {
-        const index = currentIndex();
-        thumbs.forEach((thumb, thumbIndex) => {
-          thumb.classList.toggle("active", thumbIndex === index);
+        track.scrollTo({
+          left: slide.offsetLeft,
+          behavior
         });
       }
 
+      function nearestSlideIndex() {
+        const scrollLeft = track.scrollLeft;
+        let nearestIndex = 0;
+        let nearestDistance = Infinity;
+
+        slides.forEach((slide, index) => {
+          const distance = Math.abs(slide.offsetLeft - scrollLeft);
+          if (distance < nearestDistance) {
+            nearestDistance = distance;
+            nearestIndex = index;
+          }
+        });
+
+        return nearestIndex;
+      }
+
       thumbs.forEach((thumb) => {
-        thumb.addEventListener("click", () => goToSlide(Number(thumb.dataset.slide)));
+        thumb.addEventListener("click", () => {
+          goToSlide(Number(thumb.dataset.slide));
+        });
       });
 
       if (prev) {
-        prev.addEventListener("click", () => goToSlide(Math.max(currentIndex() - 1, 0)));
+        prev.addEventListener("click", () => {
+          goToSlide(activeIndex - 1);
+        });
       }
 
       if (next) {
-        next.addEventListener("click", () => goToSlide(Math.min(currentIndex() + 1, slides.length - 1)));
+        next.addEventListener("click", () => {
+          goToSlide(activeIndex + 1);
+        });
       }
 
-      track.addEventListener("scroll", () => window.requestAnimationFrame(updateThumbs));
+      track.addEventListener("scroll", () => {
+        if (scrollFrame) {
+          cancelAnimationFrame(scrollFrame);
+        }
+
+        scrollFrame = requestAnimationFrame(() => {
+          setActiveThumb(nearestSlideIndex());
+        });
+      });
+
+      window.addEventListener("resize", () => {
+        goToSlide(activeIndex, "auto");
+      });
+
+      setActiveThumb(0);
+    }
+
+
+    function setupLightbox(images) {
+      const lightbox = document.getElementById("gallery-lightbox");
+      const lightboxImage = document.getElementById("lightbox-image");
+      const lightboxThumbs = document.getElementById("lightbox-thumbs");
+      const counter = document.getElementById("lightbox-counter");
+      const closeButton = document.getElementById("lightbox-close");
+      const prevButton = document.getElementById("lightbox-prev");
+      const nextButton = document.getElementById("lightbox-next");
+      const stage = document.getElementById("lightbox-stage");
+
+      if (!lightbox || !lightboxImage || !lightboxThumbs || !images.length) {
+        return;
+      }
+
+      let currentIndex = 0;
+
+      lightboxThumbs.innerHTML = images.map((url, index) => `
+        <button class="lightbox-thumb ${index === 0 ? "active" : ""}" type="button" data-lightbox-index="${index}" aria-label="Vis bilde ${index + 1}">
+          <img src="${escapeHtml(url)}" alt="">
+        </button>
+      `).join("");
+
+      const thumbButtons = Array.from(lightboxThumbs.querySelectorAll(".lightbox-thumb"));
+
+      function showImage(index) {
+        currentIndex = (index + images.length) % images.length;
+        lightboxImage.src = images[currentIndex];
+        lightboxImage.alt = `Boligbilde ${currentIndex + 1}`;
+        counter.textContent = `${currentIndex + 1} / ${images.length}`;
+
+        thumbButtons.forEach((button, buttonIndex) => {
+          const active = buttonIndex === currentIndex;
+          button.classList.toggle("active", active);
+          button.setAttribute("aria-current", active ? "true" : "false");
+        });
+
+        thumbButtons[currentIndex]?.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "nearest"
+        });
+      }
+
+      function openLightbox(index) {
+        showImage(index);
+        lightbox.classList.add("open");
+        lightbox.setAttribute("aria-hidden", "false");
+        document.body.classList.add("lightbox-open");
+        closeButton.focus();
+      }
+
+      function closeLightbox() {
+        lightbox.classList.remove("open");
+        lightbox.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("lightbox-open");
+      }
+
+      document.querySelectorAll(".gallery-slide").forEach((slide, index) => {
+        slide.addEventListener("click", () => openLightbox(index));
+      });
+
+      thumbButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          showImage(Number(button.dataset.lightboxIndex));
+        });
+      });
+
+      prevButton.addEventListener("click", () => showImage(currentIndex - 1));
+      nextButton.addEventListener("click", () => showImage(currentIndex + 1));
+      closeButton.addEventListener("click", closeLightbox);
+
+      lightbox.addEventListener("click", (event) => {
+        if (event.target === lightbox || event.target === stage) {
+          closeLightbox();
+        }
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (!lightbox.classList.contains("open")) {
+          return;
+        }
+
+        if (event.key === "Escape") {
+          closeLightbox();
+        } else if (event.key === "ArrowLeft") {
+          showImage(currentIndex - 1);
+        } else if (event.key === "ArrowRight") {
+          showImage(currentIndex + 1);
+        }
+      });
     }
 
     function renderProperty(property, images, heroImageUrl) {
@@ -1049,6 +1395,7 @@
       `;
 
       setupGallery();
+      setupLightbox(galleryImages);
     }
 
     async function loadProperty() {
@@ -1097,5 +1444,20 @@
 
     loadProperty();
   </script>
+
+  <div class="lightbox" id="gallery-lightbox" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Bildegalleri i fullskjerm">
+    <div class="lightbox-topbar">
+      <p class="lightbox-title">Galleri</p>
+      <span class="lightbox-counter" id="lightbox-counter">1 / 1</span>
+      <button class="lightbox-close" id="lightbox-close" type="button" aria-label="Lukk galleri">×</button>
+    </div>
+    <div class="lightbox-thumbs" id="lightbox-thumbs"></div>
+    <div class="lightbox-stage" id="lightbox-stage">
+      <button class="lightbox-arrow prev" id="lightbox-prev" type="button" aria-label="Forrige bilde">‹</button>
+      <img class="lightbox-image" id="lightbox-image" src="" alt="">
+      <button class="lightbox-arrow next" id="lightbox-next" type="button" aria-label="Neste bilde">›</button>
+    </div>
+  </div>
+
 </body>
 </html>
