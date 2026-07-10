@@ -264,6 +264,11 @@
         </label>
 
         <label>
+          Fellesgjeld
+          <input name="common_debt" type="number" min="0" placeholder="350000">
+        </label>
+
+        <label>
           Månedsleie
           <input name="monthly_rent" type="number" min="0" placeholder="18500">
         </label>
@@ -524,7 +529,7 @@
       property.status = "pending";
       property.user_id = user.id;
 
-      ["price", "monthly_rent", "size_m2", "bedrooms"].forEach((field) => {
+      ["price", "common_debt", "monthly_rent", "size_m2", "bedrooms"].forEach((field) => {
         property[field] = property[field] ? Number(property[field]) : null;
       });
 
